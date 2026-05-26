@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Artifacts — kirby44</title>
+<style>
+  :root {
+    --bg:        #f6f1e7;
+    --paper:     #fbf7ee;
+    --ink:       #1f1b16;
+    --muted:     #6b6157;
+    --rule:      #d9cfbb;
+    --accent:    #8a4f1f;
+    --chip-bg:   #ece1c8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+                 "Hiragino Sans", "Yu Gothic UI", system-ui, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  header h1 {
+    font-size: 32px;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    color: var(--muted);
+    margin: 0 0 36px;
+    font-size: 15px;
+  }
+  .card {
+    display: block;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 18px 20px 16px;
+    margin-bottom: 14px;
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .card .chip {
+    display: inline-block;
+    background: var(--chip-bg);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+  }
+  .card h2 {
+    font-size: 18px;
+    margin: 0 0 4px;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  .card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  footer {
+    margin-top: 48px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Artifacts</h1>
+      <p>Shareable HTML pages from internal evaluation work.</p>
+    </header>
+
+    <main>
+      <a class="card" href="eval-variables.html">
+        <span class="chip">Cybench</span>
+        <h2>AI Evaluation: Variables Affecting Outcomes</h2>
+        <p>A working map of what we configure vs. what Anthropic configures when running an eval like Cybench. Internal reference for evaluation engineers.</p>
+      </a>
+    </main>
+
+    <footer>
+      <a href="https://github.com/kirby44/artifacts">github.com/kirby44/artifacts</a>
+    </footer>
+  </div>
+</body>
+</html>
