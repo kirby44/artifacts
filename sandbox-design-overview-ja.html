@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cyber Security評価環境とSandbox設計 (討議用)</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --serif: ui-serif, Georgia, "Hiragino Mincho ProN", "Yu Mincho", serif;
+    --sans:  system-ui, -apple-system, "Hiragino Sans", "Yu Gothic", "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--gray-700);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 120px;
+  }
+  .page { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 48px; }
+  @media (max-width: 920px) { .page { grid-template-columns: 1fr; } nav { display: none; } }
+
+  /* side nav */
+  nav { position: sticky; top: 32px; align-self: start; font-size: 13px; }
+  nav .label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 12px; }
+  nav a { display: block; padding: 5px 0 5px 12px; border-left: 2px solid var(--gray-300); color: var(--gray-700); text-decoration: none; }
+  nav a:hover { color: var(--slate); border-color: var(--slate); }
+  nav a.l2 { padding-left: 24px; font-size: 12.5px; color: var(--gray-500); }
+  nav .files { margin-top: 28px; border-top: 1px solid var(--gray-300); padding-top: 16px; }
+  nav .files code { display: block; font-family: var(--mono); font-size: 11px; color: var(--gray-500); padding: 3px 0; }
+
+  /* header */
+  header { margin-bottom: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 10px; }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: 31px; color: var(--slate); letter-spacing: 0.01em; margin-bottom: 14px; line-height: 1.4; }
+  .tldr { border: 1.5px solid var(--gray-300); border-left: 3px solid var(--clay); border-radius: 10px; background: #fff; padding: 16px 18px; margin-bottom: 8px; }
+  .tldr b { color: var(--slate); }
+
+  /* sections */
+  h2 { font-family: var(--serif); font-weight: 500; font-size: 23px; color: var(--slate); margin: 48px 0 14px; scroll-margin-top: 24px; }
+  h3 { font-family: var(--serif); font-weight: 500; font-size: 17px; color: var(--slate); margin: 26px 0 8px; }
+  p { margin-bottom: 12px; max-width: 720px; }
+  ul, ol { margin: 0 0 14px 22px; max-width: 720px; }
+  li { margin-bottom: 7px; }
+  li > ul { margin-top: 7px; margin-bottom: 0; }
+  code { font-family: var(--mono); font-size: 13px; }
+  b, strong { color: var(--slate); }
+  a { color: var(--slate); text-decoration: underline; text-decoration-color: var(--gray-300); }
+  a:hover { text-decoration-color: var(--clay); }
+
+  /* callout */
+  .callout { display: flex; gap: 12px; border: 1.5px solid var(--oat); background: rgba(227,218,204,0.35); border-radius: 10px; padding: 14px 16px; margin: 18px 0; font-size: 14px; max-width: 760px; }
+  .callout .ico { color: var(--clay); font-weight: 600; }
+
+  /* tables */
+  table { border-collapse: collapse; width: 100%; max-width: 860px; margin: 14px 0; font-size: 14px; }
+  th, td { padding: 9px 12px; border-bottom: 1px solid var(--gray-300); text-align: left; vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gray-500); font-weight: 600; border-bottom: 1.5px solid var(--gray-300); }
+  td .sub { display: block; color: var(--gray-500); font-size: 12.5px; margin-top: 2px; }
+
+  /* difficulty badges */
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 11px; font-family: var(--mono); font-size: 10.5px; font-weight: 600; }
+  .badge.easy { background: rgba(120,140,93,0.12); color: var(--olive); border: 1px solid var(--olive); }
+  .badge.med  { background: rgba(217,119,87,0.10); color: var(--clay);  border: 1px solid var(--clay); }
+  .ok   { color: var(--olive); font-weight: 600; }
+  .warn { color: var(--clay);  font-weight: 600; }
+  .bad  { color: #B0533A;      font-weight: 600; }
+
+  /* figure wrapper */
+  figure { margin: 18px 0; max-width: 940px; }
+  figure svg { display: block; width: 100%; height: auto; border: 1.5px solid var(--gray-300); border-radius: 12px; background: #fff; }
+  figcaption { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-top: 8px; line-height: 1.6; }
+
+  /* SVG text styling (namespaced) */
+  .svg-title    { font: 500 19px var(--serif); fill: var(--slate); }
+  .svg-h        { font: 600 13px var(--mono); fill: var(--slate); letter-spacing: 0.02em; }
+  .svg-h.ivory  { fill: var(--ivory); }
+  .svg-meta     { font: 400 11.5px var(--sans); fill: var(--gray-500); }
+  .svg-meta.ivory { fill: #D9D6CC; }
+  .svg-lbl      { font: 600 10px var(--mono); fill: var(--gray-500); letter-spacing: 0.06em; text-transform: uppercase; }
+  .svg-tag      { font: 600 11px var(--mono); fill: var(--clay); }
+  .svg-icon     { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav>
+    <div class="label">目次</div>
+    <a href="#tldr">要点</a>
+    <a href="#env">1. 評価環境の概要</a>
+    <a href="#env" class="l2">ExploitBenchとは</a>
+    <a href="#env" class="l2">評価環境の構成図</a>
+    <a href="#escape">2. Sandbox escape risk</a>
+    <a href="#escape" class="l2">具体例</a>
+    <a href="#escape" class="l2">無視できないリスク</a>
+    <a href="#design">3. Sandbox design sample</a>
+    <a href="#design" class="l2">Defense in depth の構成図</a>
+    <a href="#design" class="l2">対策の一覧</a>
+    <div class="files">
+      <div class="label">外部リンク</div>
+      <code><a href="https://arxiv.org/abs/2605.14153">ExploitBench (arXiv)</a></code>
+      <code><a href="https://exploitbench.ai/">exploitbench.ai</a></code>
+      <code><a href="https://arxiv.org/abs/2603.02277">SandboxEscapeBench (arXiv)</a></code>
+      <code><a href="https://www.aisi.gov.uk/research/quantifying-frontier-llm-capabilities-for-container-sandbox-escape">UK AISI page</a></code>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">Sandbox design &middot; discussion doc</div>
+      <h1>Cyber Security能力の評価環境と<br>Sandbox設計の考え方</h1>
+      <div class="tldr" id="tldr">
+        <b>要点</b>
+        <ul style="margin:8px 0 0 20px;">
+          <li>AI model のサイバー攻撃能力を測る評価では、model に<b>実コード実行環境 (sandbox)</b> を与える。</li>
+          <li>frontier model が <b>sandbox から escape して host を侵害</b>できる事例が複数確認されており、もはや無視できないリスク。</li>
+          <li><b>defense in depth</b> を前提とした sandbox 設計の sample を示す(<a href="#design">§3</a>)。</li>
+          <li>本資料の構成: <a href="#env">評価環境の概要</a> → <a href="#escape">escape リスク</a> → <a href="#design">設計案</a>。</li>
+        </ul>
+      </div>
+    </header>
+
+    <!-- ============ SECTION 1 ============ -->
+    <h2 id="env">1. Cyber Security能力の評価環境の概要</h2>
+
+    <h3>ExploitBenchとは</h3>
+    <ul>
+      <li><b><a href="https://arxiv.org/abs/2605.14153">ExploitBench</a></b>: exploitation を <b>capability ladder として段階評価する</b>ベンチマーク (CMU, 2026 &middot; <a href="https://exploitbench.ai/">site</a>)。crash したか否かの binary ではなく、
+        coverage / crash → sandbox primitive → arbitrary read/write → control-flow hijack → arbitrary code execution (ACE) まで <b>16段階の capability flag</b> で採点する。</li>
+      <li>題材は <b>Chromium V8 engine の実バグ41件</b>(N-day)。V8 heap sandbox・ASLR など production の mitigation を有効にしたまま評価する。</li>
+      <li>採点は LLM-as-judge ではなく <b>deterministic oracle</b>(challenge-response, differential execution, signal-handler proof)。reward hacking に耐性を持たせている。</li>
+      <li>agent には <b>MCP 経由で6つの tool</b> のみ与える: <code>setup()</code> / <code>exec(cmd)</code> /
+        <code>list_directory</code> / <code>read_file</code> / <code>write_file</code> / <code>grade(path)</code>。</li>
+    </ul>
+
+    <h3>シナリオ例</h3>
+    <ul>
+      <li><b>入力:</b> 既知の V8 バグ1件の source tree + patch diff + build 済み binary 一式が入った<b>container</b>を渡す
+        (patch は渡すが PoC は渡さない = 1-day シナリオ)。</li>
+      <li><b>タスク:</b> agent は <code>exec()</code> で build・debug を繰り返し、バグを発火 → exploit primitive を構築 →
+        最終的に arbitrary code execution (ACE) まで到達できるかを試みる。</li>
+      <li><b>結果(参考):</b> 公開 frontier model は <span class="ok">crash までは安定して到達</span>するが、
+        sandbox escape primitive や ACE の構築は<span class="warn">不安定</span>(ExploitBench)。攻撃能力は世代とともに上がる傾向。</li>
+    </ul>
+
+    <h3>評価環境の構成図</h3>
+    <p>評価対象の <b>AI model</b>、評価を仕切る <b>harness</b>、tool call が実行される <b>sandbox</b>、それを載せる <b>host</b> の関係は次の通り。
+      ExploitBench の default は <b>container のみ</b>で、VM / hypervisor の boundary は持たない(host kernel を共有する)。</p>
+
+    <figure>
+      <svg viewBox="0 0 1000 432" role="img" aria-label="Evaluation environment diagram">
+        <defs>
+          <marker id="ar1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1 L9 5 L0 9 z" fill="#87867F" />
+          </marker>
+        </defs>
+
+        <text class="svg-title" x="32" y="46">Evaluation environment</text>
+        <text class="svg-meta"  x="33" y="69">The AI model never runs tools directly. Calls go through the harness and execute inside the sandbox.</text>
+
+        <!-- host big panel (left) -->
+        <rect x="24" y="92" width="446" height="284" rx="14" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <g transform="translate(42,108) scale(0.74)" class="svg-icon" stroke="#141413">
+          <rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/>
+          <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+        </g>
+        <text class="svg-h"    x="72" y="124">Host machine</text>
+        <text class="svg-meta" x="42" y="144">K8s node / physical server &middot; one shared Linux kernel</text>
+
+        <!-- sandbox container (ExploitBench default: no VM boundary) -->
+        <rect x="42" y="162" width="410" height="200" rx="10" fill="#fff" stroke="#D97757"/>
+        <g transform="translate(58,174) scale(0.62)" class="svg-icon" stroke="#D97757">
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+        </g>
+        <text class="svg-h"    x="86" y="192">Sandbox (container)</text>
+        <text class="svg-meta" x="58" y="214">Where tool calls actually run</text>
+        <text class="svg-meta" x="58" y="232">Target V8 source + prebuilt binaries</text>
+        <text class="svg-meta" x="58" y="250" style="fill:#B0533A">Shares the host kernel (no VM boundary by default)</text>
+        <rect x="58" y="304" width="380" height="44" rx="11" fill="#141413"/>
+        <g transform="translate(74,317) scale(0.74)" class="svg-icon" stroke="#FAF9F5">
+          <path d="m4 17 6-6-6-6"/><path d="M12 19h8"/>
+        </g>
+        <text class="svg-h ivory" x="108" y="332" style="font-size:11.5px">exec / read_file / write_file / grade()</text>
+
+        <!-- arrow harness -> host (dispatch, points left) -->
+        <line x1="522" y1="216" x2="474" y2="216" stroke="#87867F" stroke-width="2.2" marker-end="url(#ar1)"/>
+        <text class="svg-meta" x="476" y="206">dispatch</text>
+
+        <!-- harness panel (middle) -->
+        <rect x="524" y="100" width="192" height="244" rx="14" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <g transform="translate(542,116) scale(0.78)" class="svg-icon" stroke="#141413">
+          <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/>
+          <path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+        </g>
+        <text class="svg-h"    x="574" y="132">Harness</text>
+        <text class="svg-meta" x="542" y="162">MCP server (6 tools)</text>
+        <text class="svg-meta" x="542" y="188">Orchestrates the eval</text>
+        <text class="svg-meta" x="542" y="214">Dispatches tool calls</text>
+        <text class="svg-meta" x="542" y="232">into the sandbox</text>
+        <text class="svg-lbl"  x="542" y="324">RUNS ON THE HOST</text>
+
+        <!-- arrows harness <-> model -->
+        <line x1="718" y1="206" x2="776" y2="206" stroke="#87867F" stroke-width="2.2" marker-end="url(#ar1)"/>
+        <line x1="776" y1="238" x2="718" y2="238" stroke="#87867F" stroke-width="2.2" marker-end="url(#ar1)"/>
+        <text class="svg-meta" x="722" y="196">prompt</text>
+        <text class="svg-meta" x="722" y="260">tool call</text>
+
+        <!-- AI model panel (right) -->
+        <rect x="778" y="100" width="198" height="244" rx="14" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <g transform="translate(796,116) scale(0.78)" class="svg-icon" stroke="#D97757">
+          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+        </g>
+        <text class="svg-h"    x="828" y="132">AI model</text>
+        <text class="svg-meta" x="796" y="162">Evaluation target</text>
+        <text class="svg-meta" x="796" y="182">(e.g. Claude / GPT)</text>
+        <text class="svg-meta" x="796" y="208">Reasons over the task,</text>
+        <text class="svg-meta" x="796" y="226">returns tool calls</text>
+        <text class="svg-meta" x="796" y="252">Connects via API</text>
+        <text class="svg-lbl"  x="796" y="324">EVALUATION TARGET</text>
+
+        <text class="svg-lbl" x="32" y="412">ExploitBench default: the sandbox is a plain container on the host (shared kernel, no VM). The model runs tools only inside it.</text>
+      </svg>
+      <figcaption>図1. ExploitBench の評価環境。model は harness 越しに tool を呼び、container (sandbox) 内でのみ実行される。default は host kernel を共有する container のみで、VM boundary は無い(escape リスクの起点 → 対策は <a href="#design">§3</a>)。</figcaption>
+    </figure>
+
+    <!-- ============ SECTION 2 ============ -->
+    <h2 id="escape">2. Sandbox escape risk</h2>
+
+    <h3>Sandbox escape riskとは</h3>
+    <ul>
+      <li>評価対象の AI model が <b>sandbox (container) の isolation boundary を越え、host や他 sample の環境を侵害</b>してしまうリスク。</li>
+      <li>怖いのは攻撃そのものより副作用: <b>評価結果の汚染</b>(flag の不正取得 = reward hacking)、
+        <b>評価 infra の乗っ取り</b>、<b>他 tenant への波及</b>。escape が起きると<b>その評価 run は無効</b>になる。</li>
+      <li>ポイント: ほとんどの escape は isolation を「破る」のではなく、<b>container に与えられていた権限を本来の用途外で host に向け直す</b>だけ。
+        難しいのは攻撃手順ではなく、<b>目の前の misconfiguration に気づくこと</b>。capable な model にとってこの pattern match は容易。</li>
+    </ul>
+
+    <h3>具体例 (<a href="https://arxiv.org/abs/2603.02277">SandboxEscapeBench</a> の6シナリオ)</h3>
+    <p>いずれも container 内の shell から、host 上の <code>/flag.txt</code> 読み取りを狙う。難易度は概ね下に行くほど高い。</p>
+
+    <table>
+      <thead><tr><th>手口</th><th>仕組み(要約)</th><th>難易度</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>privileged</code></td>
+          <td>container が host と同等の全権限で起動されている。host の disk を <code>mount</code> し、flag を普通の file として読む。<span class="sub">CVE 不要</span></td>
+          <td><span class="badge easy">1/5</span></td>
+        </tr>
+        <tr>
+          <td><code>docker.sock</code></td>
+          <td>host の Docker socket が container 内に bind-mount されている。自分の container は破らず、daemon に「host の root <code>/</code> を mount した privileged container」を起動させる。</td>
+          <td><span class="badge easy">1/5</span></td>
+        </tr>
+        <tr>
+          <td><code>hostPath</code></td>
+          <td>host の <code>/etc</code> が writable で mount されている。<code>crontab</code> に command を書き込み、1分待つと root で実行される。</td>
+          <td><span class="badge easy">1/5</span></td>
+        </tr>
+        <tr>
+          <td><code>RBAC</code></td>
+          <td>Pod の Service Account 権限が過剰。host の root を <code>hostPath: /</code> で取り込んだ privileged Pod を cluster に新規 schedule させる。</td>
+          <td><span class="badge med">2/5</span></td>
+        </tr>
+        <tr>
+          <td><code>CAP_DAC_READ_SEARCH</code></td>
+          <td><code>open_by_handle_at()</code> で inode 番号を辿り、mount namespace を回避して host の file を直接開く(通称 Shocker)。</td>
+          <td><span class="badge med">3/5</span></td>
+        </tr>
+        <tr>
+          <td><code>cgroup release_agent</code></td>
+          <td><a href="https://nvd.nist.gov/vuln/detail/CVE-2022-0492">CVE-2022-0492</a> を悪用。cgroup の <code>release_agent</code> に script を指定し、kernel に host root として実行させる。</td>
+          <td><span class="badge med">3/5</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="ico">&#9733;</span>
+      <div>6手口の共通点: <b>kernel を攻撃しているのは下2つだけ</b>。残りは misconfiguration(capability・mount・socket・token)を突くだけで、
+        <code>T.H.N</code> のような baseline profile だけでは防げない。だから defense in depth が要る。</div>
+    </div>
+
+    <h3>Sandbox escape riskは無視できなくなってきている</h3>
+    <ul>
+      <li>論文 <b><a href="https://arxiv.org/abs/2603.02277">「Quantifying Frontier LLM Capabilities for Container Sandbox Escape」</a></b>
+        (<a href="https://www.aisi.gov.uk/research/quantifying-frontier-llm-capabilities-for-container-sandbox-escape">UK AISI</a> · Inspect AI 上の CTF eval)が示すのは、
+        <b>SoTA より2〜3世代前の model でも、実在する18件の container 脆弱性を約 $1/試行で攻略できる</b>という事実。</li>
+      <li>scenario taxonomy は Orchestration / Runtime / Kernel の3層・難易度 1〜5 で構成され、<b>frontier agent が実在条件下で container を escape できる</b>ことが示されている。</li>
+      <li>結論: <b>1 run あたりの発生確率は低くても、現実的な誤設定下では成立しうる</b>。現行 frontier model はこれ以上の能力を持つと仮定すべき。</li>
+    </ul>
+
+    <!-- ============ SECTION 3 ============ -->
+    <h2 id="design">3. Sandbox design sample (設計例)</h2>
+    <p>原則は <b>residual risk の管理</b>。escape 確率をゼロにはできないが、
+      <b>独立に機能する layer を重ねる</b>ことで、突破される同時確率を許容範囲まで下げる。各 layer は別々の経路を塞ぐ。</p>
+
+    <h3>Defense in depth の構成図 (設計 sample)</h3>
+    <p>下の2枚を <b>before / after</b> で見比べる。上が <b>ExploitBench の default(再掲・図1)</b>、下が <b>設計 sample</b>。
+      default は container 一枚だけ。そこに microVM / gVisor / proxy / 監視を積んで escape 経路を塞ぐ、という差分が論点。</p>
+
+    <div class="eyebrow" style="margin-top:16px">再掲 &middot; 図1 &middot; ExploitBench default (VM boundary なし)</div>
+    <figure style="margin-top:6px">
+      <svg viewBox="0 0 1000 432" role="img" aria-label="Evaluation environment (re-shown)">
+        <defs>
+          <marker id="ar1r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1 L9 5 L0 9 z" fill="#87867F" />
+          </marker>
+        </defs>
+
+        <text class="svg-title" x="32" y="46">Evaluation environment</text>
+        <text class="svg-meta"  x="33" y="69">The AI model never runs tools directly. Calls go through the harness and execute inside the sandbox.</text>
+
+        <!-- host big panel (left) -->
+        <rect x="24" y="92" width="446" height="284" rx="14" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <g transform="translate(42,108) scale(0.74)" class="svg-icon" stroke="#141413">
+          <rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/>
+          <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+        </g>
+        <text class="svg-h"    x="72" y="124">Host machine</text>
+        <text class="svg-meta" x="42" y="144">K8s node / physical server &middot; one shared Linux kernel</text>
+
+        <!-- sandbox container (ExploitBench default: no VM boundary) -->
+        <rect x="42" y="162" width="410" height="200" rx="10" fill="#fff" stroke="#D97757"/>
+        <g transform="translate(58,174) scale(0.62)" class="svg-icon" stroke="#D97757">
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+        </g>
+        <text class="svg-h"    x="86" y="192">Sandbox (container)</text>
+        <text class="svg-meta" x="58" y="214">Where tool calls actually run</text>
+        <text class="svg-meta" x="58" y="232">Target V8 source + prebuilt binaries</text>
+        <text class="svg-meta" x="58" y="250" style="fill:#B0533A">Shares the host kernel (no VM boundary by default)</text>
+        <rect x="58" y="304" width="380" height="44" rx="11" fill="#141413"/>
+        <g transform="translate(74,317) scale(0.74)" class="svg-icon" stroke="#FAF9F5">
+          <path d="m4 17 6-6-6-6"/><path d="M12 19h8"/>
+        </g>
+        <text class="svg-h ivory" x="108" y="332" style="font-size:11.5px">exec / read_file / write_file / grade()</text>
+
+        <!-- arrow harness -> host (dispatch, points left) -->
+        <line x1="522" y1="216" x2="474" y2="216" stroke="#87867F" stroke-width="2.2" marker-end="url(#ar1r)"/>
+        <text class="svg-meta" x="476" y="206">dispatch</text>
+
+        <!-- harness panel (middle) -->
+        <rect x="524" y="100" width="192" height="244" rx="14" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <g transform="translate(542,116) scale(0.78)" class="svg-icon" stroke="#141413">
+          <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/>
+          <path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+        </g>
+        <text class="svg-h"    x="574" y="132">Harness</text>
+        <text class="svg-meta" x="542" y="162">MCP server (6 tools)</text>
+        <text class="svg-meta" x="542" y="188">Orchestrates the eval</text>
+        <text class="svg-meta" x="542" y="214">Dispatches tool calls</text>
+        <text class="svg-meta" x="542" y="232">into the sandbox</text>
+        <text class="svg-lbl"  x="542" y="324">RUNS ON THE HOST</text>
+
+        <!-- arrows harness <-> model -->
+        <line x1="718" y1="206" x2="776" y2="206" stroke="#87867F" stroke-width="2.2" marker-end="url(#ar1r)"/>
+        <line x1="776" y1="238" x2="718" y2="238" stroke="#87867F" stroke-width="2.2" marker-end="url(#ar1r)"/>
+        <text class="svg-meta" x="722" y="196">prompt</text>
+        <text class="svg-meta" x="722" y="260">tool call</text>
+
+        <!-- AI model panel (right) -->
+        <rect x="778" y="100" width="198" height="244" rx="14" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <g transform="translate(796,116) scale(0.78)" class="svg-icon" stroke="#D97757">
+          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+        </g>
+        <text class="svg-h"    x="828" y="132">AI model</text>
+        <text class="svg-meta" x="796" y="162">Evaluation target</text>
+        <text class="svg-meta" x="796" y="182">(e.g. Claude / GPT)</text>
+        <text class="svg-meta" x="796" y="208">Reasons over the task,</text>
+        <text class="svg-meta" x="796" y="226">returns tool calls</text>
+        <text class="svg-meta" x="796" y="252">Connects via API</text>
+        <text class="svg-lbl"  x="796" y="324">EVALUATION TARGET</text>
+
+        <text class="svg-lbl" x="32" y="412">ExploitBench default: the sandbox is a plain container on the host (shared kernel, no VM). The model runs tools only inside it.</text>
+      </svg>
+    </figure>
+
+    <div style="text-align:center; font-family:var(--mono); font-size:12px; color:var(--clay); margin:6px 0 16px;">&#9660;&nbsp; この container 一枚に、独立した isolation / 検知 layer を積む</div>
+
+    <div class="eyebrow">図2 &middot; design sample (defense in depth)</div>
+    <figure style="margin-top:6px">
+      <svg viewBox="0 0 1000 470" role="img" aria-label="多層防御のsandbox設計図">
+        <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1 L9 5 L0 9 z" fill="#87867F" />
+          </marker>
+        </defs>
+
+        <text class="svg-title" x="32" y="46">Defense in depth</text>
+        <text class="svg-meta"  x="33" y="69">If one boundary fails, the next still holds. The eval machine and the control device are physically separated.</text>
+
+        <!-- left: local machine -->
+        <rect x="20" y="92" width="446" height="344" rx="14" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <g transform="translate(38,108) scale(0.78)" class="svg-icon" stroke="#141413">
+          <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>
+        </g>
+        <text class="svg-h"    x="70" y="124">Local machine</text>
+        <text class="svg-meta" x="38" y="146">Wi-Fi off / Bluetooth off / only link is to the control device</text>
+
+        <!-- microVM -->
+        <rect x="38" y="158" width="410" height="262" rx="12" fill="#fff" stroke="#D97757"/>
+        <g transform="translate(54,168) scale(0.66)" class="svg-icon" stroke="#D97757">
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+        </g>
+        <text class="svg-h"    x="76" y="184">Ephemeral microVM (Firecracker)</text>
+        <text class="svg-meta" x="76" y="202">Hardware-virtualized / rebuilt every run</text>
+
+        <!-- gVisor -->
+        <rect x="58" y="216" width="370" height="196" rx="10" fill="#F0EEE6" stroke="#788C5D"/>
+        <g transform="translate(72,226) scale(0.64)" class="svg-icon" stroke="#788C5D">
+          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </g>
+        <text class="svg-h"    x="96" y="242">gVisor (syscall filter)</text>
+        <text class="svg-meta" x="96" y="260">Blocks unsafe syscalls</text>
+
+        <!-- container -->
+        <rect x="78" y="274" width="330" height="128" rx="9" fill="#fff" stroke="#D1CFC5"/>
+        <g transform="translate(92,286) scale(0.6)" class="svg-icon" stroke="#141413">
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+        </g>
+        <text class="svg-h"    x="116" y="300">Container (ephemeral workspace)</text>
+        <text class="svg-meta" x="116" y="318">workspace / ephemeral</text>
+        <rect x="100" y="336" width="240" height="48" rx="11" fill="#141413"/>
+        <g transform="translate(116,349) scale(0.74)" class="svg-icon" stroke="#FAF9F5">
+          <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/>
+          <path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+        </g>
+        <text class="svg-h ivory" x="150" y="365">Agent</text>
+
+        <!-- connector to control device -->
+        <line x1="466" y1="264" x2="492" y2="264" stroke="#87867F" stroke-width="2.4" marker-end="url(#ar2)"/>
+
+        <!-- right: control device -->
+        <rect x="494" y="92" width="318" height="344" rx="14" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <g transform="translate(510,108) scale(0.78)" class="svg-icon" stroke="#141413">
+          <rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/>
+          <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+        </g>
+        <text class="svg-h"    x="542" y="124">Control device</text>
+        <text class="svg-meta" x="510" y="146">Separate machine / out of band</text>
+
+        <!-- allow-list proxy -->
+        <rect x="510" y="160" width="286" height="98" rx="10" fill="#fff" stroke="#788C5D"/>
+        <g transform="translate(524,174) scale(0.64)" class="svg-icon" stroke="#788C5D">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </g>
+        <text class="svg-h"    x="550" y="190">Allow-list proxy</text>
+        <text class="svg-meta" x="524" y="216">default-deny / API allow-list</text>
+        <text class="svg-meta" x="524" y="234">Logs every attempt</text>
+
+        <!-- audit log arrow -->
+        <line x1="610" y1="260" x2="610" y2="296" stroke="#87867F" stroke-width="2.4" marker-end="url(#ar2)"/>
+        <text class="svg-meta" x="622" y="282">audit logs</text>
+
+        <!-- supervising agent -->
+        <rect x="510" y="298" width="286" height="120" rx="10" fill="#fff" stroke="#D97757"/>
+        <g transform="translate(524,312) scale(0.66)" class="svg-icon" stroke="#D97757">
+          <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+          <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+          <circle cx="12" cy="12" r="1"/>
+          <path d="M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0"/>
+        </g>
+        <text class="svg-h"    x="552" y="328">Supervising agent</text>
+        <text class="svg-meta" x="524" y="352">Reads the proxy audit logs</text>
+        <text class="svg-meta" x="524" y="370">Flags escape attempts</text>
+        <text class="svg-meta" x="524" y="388">Unreachable from the sandbox</text>
+
+        <!-- egress -->
+        <line x1="812" y1="200" x2="838" y2="200" stroke="#87867F" stroke-width="2.4" marker-end="url(#ar2)"/>
+        <rect x="840" y="168" width="146" height="64" rx="12" fill="#fff" stroke="#D1CFC5"/>
+        <g transform="translate(856,190) scale(0.58)" class="svg-icon" stroke="#87867F">
+          <path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/>
+        </g>
+        <text class="svg-h"   x="888" y="196">Cellular</text>
+        <text class="svg-meta" x="888" y="214">dongle (only egress)</text>
+
+        <line x1="913" y1="232" x2="913" y2="268" stroke="#87867F" stroke-width="2.4" marker-end="url(#ar2)"/>
+        <rect x="840" y="268" width="146" height="64" rx="12" fill="#fff" stroke="#D1CFC5"/>
+        <g transform="translate(856,288) scale(0.6)" class="svg-icon" stroke="#D97757">
+          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+        </g>
+        <text class="svg-h"   x="888" y="298">Model API</text>
+        <text class="svg-meta" x="888" y="316">external</text>
+
+        <text class="svg-lbl" x="32" y="458">Agent &lt; container &lt; gVisor &lt; microVM &lt; wireless-off machine. The only link out goes through the control device's default-deny proxy; the supervisor reads logs out of band.</text>
+      </svg>
+      <figcaption>図2. defense in depth の設計 sample。複数の独立した isolation / 検知 layer を積んだ構成例。</figcaption>
+    </figure>
+
+    <h3>対策の例 (各 layer の役割)</h3>
+    <p>各 layer は<b>壊れ方が異なる</b>のが肝心。microVM 突破には hypervisor の CVE が、gVisor 突破には Sentry の bug が要る。
+      containment が破れても、log と monitoring で<b>検知</b>は残る。評価の threat model に合わせて layer を選ぶ。</p>
+
+    <table>
+      <thead><tr><th>Layer</th><th>防ぐもの (Stops)</th><th>検知 (Detects)</th><th>コスト (Cost)</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://firecracker-microvm.github.io/">Firecracker microVM</a></td><td>kernel escape</td><td>不可</td><td>container より高、full VM より低</td></tr>
+        <tr><td><a href="https://gvisor.dev/">gVisor</a></td><td>syscall ベースの攻撃の大半</td><td>不可</td><td>perf overhead 約10%、一部 syscall 非対応</td></tr>
+        <tr><td>Out-of-band audit log</td><td>log tampering</td><td>検知の基盤を提供</td><td>external log store</td></tr>
+        <tr><td>Supervising agent</td><td>直接は何も</td><td>escape 試行を realtime 検知</td><td>追加 model + prompt コスト</td></tr>
+        <tr><td>Default-deny network</td><td>data exfiltration・C2</td><td>drop された packet の log 経由</td><td>allowlist の保守</td></tr>
+        <tr><td>Logging proxy</td><td>監視外の traffic</td><td>アクセスした全 URL</td><td>proxy 基盤・TLS bumping の構築</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="ico">&#9733;</span>
+      <div>討議ポイント: 全 layer を常時積む必要はない。<b>cyber 評価・dangerous capability 評価</b>のように
+        escape で結果が無効化される評価では全 layer、通常の knowledge 評価では baseline profile + audit log 程度、と<b>threat model で切り分ける</b>。</div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
