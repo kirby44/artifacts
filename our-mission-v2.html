@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Safety Tokyo — Education, Connection, Action</title>
+<style>
+  :root{
+    --ink:#111827;
+    --muted:#6b7280;
+    --line:#e5e7eb;
+    --bg:#ffffff;
+    --soft:#f9fafb;
+    --blue:#2563eb;     --blue-soft:#eff6ff;
+    --teal:#0d9488;     --teal-soft:#f0fdfa;
+    --amber:#ea580c;    --amber-soft:#fff7ed;
+    --dark:#111827;
+    --maxw:1080px;
+    --narrow:760px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:Geist,system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",Arial,sans-serif;
+    font-size:18px;line-height:1.7;-webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  a{color:inherit;}
+  img{max-width:100%;}
+
+  /* ---- nav ---- */
+  header.nav{
+    position:sticky;top:0;z-index:20;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    max-width:var(--maxw);margin:0 auto;padding:16px 28px;
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+  }
+  .brand{font-weight:700;letter-spacing:-.02em;text-decoration:none;font-size:18px;display:flex;align-items:center;gap:9px;}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--blue);display:inline-block;}
+  .nav-links{display:flex;gap:26px;font-size:15px;}
+  .nav-links a{color:var(--muted);text-decoration:none;font-weight:500;}
+  .nav-links a:hover{color:var(--ink);}
+  @media(max-width:680px){.nav-links{display:none;}}
+
+  /* ---- layout primitives ---- */
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+  .narrow{max-width:var(--narrow);}
+  section{padding:84px 0;}
+  .eyebrow{
+    text-transform:uppercase;letter-spacing:.18em;font-size:12.5px;
+    font-weight:700;margin:0 0 22px;color:var(--blue);
+  }
+  h1{font-size:clamp(46px,8vw,76px);line-height:1.02;letter-spacing:-.035em;font-weight:700;margin:0 0 28px;}
+  h2{font-size:clamp(28px,4vw,38px);line-height:1.12;letter-spacing:-.025em;font-weight:700;margin:0 0 22px;}
+  h3{font-size:21px;line-height:1.25;letter-spacing:-.01em;font-weight:700;margin:0 0 12px;}
+  p{margin:0 0 20px;}p:last-child{margin-bottom:0;}
+  .lede{font-size:clamp(20px,2.4vw,25px);line-height:1.5;letter-spacing:-.01em;}
+  .muted{color:var(--muted);}
+  strong{font-weight:700;}
+
+  /* ---- hero ---- */
+  .hero{padding:92px 0 76px;}
+  .hero h1 span{display:block;}
+  .hero h1 .g1{color:var(--blue);} .hero h1 .g2{color:var(--teal);}
+  .hero .lede{max-width:620px;color:var(--ink);margin-top:6px;}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px;}
+  .pill{font-size:13px;font-weight:600;letter-spacing:.01em;padding:7px 15px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:#fff;}
+
+  /* ---- tinted section blocks ---- */
+  .band{border-top:1px solid var(--line);}
+  .band.soft{background:var(--soft);}
+  .band.dark{background:var(--dark);color:#fff;border-top:none;}
+  .band.dark .eyebrow{color:#93c5fd;}
+  .band.dark .muted{color:#9ca3af;}
+
+  /* numbered narrative */
+  .num{font-variant-numeric:tabular-nums;font-size:15px;font-weight:700;letter-spacing:.14em;color:var(--muted);margin-bottom:14px;}
+  .grid-2{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;align-items:start;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;gap:32px;}}
+
+  /* trait / effect lists */
+  ul.clean{list-style:none;padding:0;margin:0;}
+  ul.clean li{padding:15px 0;border-top:1px solid var(--line);display:flex;gap:14px;align-items:flex-start;}
+  ul.clean li:first-child{border-top:none;}
+  ul.clean .k{color:var(--blue);font-weight:700;flex:0 0 auto;}
+  .band.soft ul.clean li{border-color:#e9ebef;}
+
+  .cardset{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px;}
+  @media(max-width:780px){.cardset{grid-template-columns:1fr;}}
+  .mini{border:1px solid var(--line);border-radius:14px;padding:22px;background:#fff;}
+  .mini h3{font-size:17px;margin-bottom:8px;}
+  .mini p{font-size:15px;color:var(--muted);margin:0;}
+
+  /* pull quote */
+  .pq{max-width:760px;margin:0 auto;text-align:center;}
+  .pq blockquote{font-size:clamp(24px,3.6vw,34px);line-height:1.3;letter-spacing:-.02em;font-weight:700;margin:0 0 18px;}
+  .pq cite{font-style:normal;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+
+  /* ---- pillars (two) ---- */
+  .pillars{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  @media(max-width:780px){.pillars{grid-template-columns:1fr;}}
+  .pillar{border-radius:20px;padding:38px 34px;border:1px solid var(--line);}
+  .pillar.edu{background:var(--blue-soft);border-color:#dbe7fe;}
+  .pillar.conn{background:var(--teal-soft);border-color:#cdeee8;}
+  .pillar .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:999px;margin-bottom:18px;}
+  .pillar.edu .tag{background:var(--blue);color:#fff;}
+  .pillar.conn .tag{background:var(--teal);color:#fff;}
+  .pillar h3{font-size:26px;letter-spacing:-.02em;margin-bottom:14px;}
+  .pillar > p{font-size:16px;}
+  .pillar ul{list-style:none;padding:0;margin:20px 0 0;}
+  .pillar li{font-size:15.5px;padding:13px 0;border-top:1px solid rgba(17,24,39,.08);display:flex;gap:12px;align-items:flex-start;line-height:1.5;}
+  .pillar li:first-child{border-top:none;}
+  .pillar li .mk{flex:0 0 auto;margin-top:9px;width:6px;height:6px;border-radius:50%;}
+  .pillar.edu li .mk{background:var(--blue);}
+  .pillar.conn li .mk{background:var(--teal);}
+  .pillar li b{font-weight:700;}
+
+  /* ---- scale / plan steps ---- */
+  .steps{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:10px;}
+  @media(max-width:780px){.steps{grid-template-columns:1fr;}}
+  .step{border:1px solid #2a3343;border-radius:16px;padding:26px;background:#171f2e;}
+  .step .n{font-size:13px;font-weight:700;letter-spacing:.14em;color:#93c5fd;margin-bottom:12px;}
+  .step h3{color:#fff;font-size:19px;margin-bottom:10px;}
+  .step p{color:#9ca3af;font-size:15px;margin:0;}
+
+  /* two-word emphasis */
+  .kw{color:#5eead4;font-weight:700;} .kw2{color:#93c5fd;font-weight:700;}
+
+  /* ---- cta ---- */
+  .cta{background:var(--ink);color:#fff;border-radius:24px;padding:56px 44px;text-align:center;}
+  .cta h2{color:#fff;}
+  .cta p{color:#cbd5e1;max-width:560px;margin:0 auto 26px;}
+  .btn{display:inline-block;background:#fff;color:var(--ink);text-decoration:none;font-weight:600;padding:14px 30px;border-radius:999px;font-size:16px;}
+  .btn:hover{background:#e5e7eb;}
+
+  footer{border-top:1px solid var(--line);}
+  .foot-inner{max-width:var(--maxw);margin:0 auto;padding:44px 28px 72px;color:var(--muted);font-size:14px;}
+  footer a{color:var(--muted);}
+  .refs{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:22px;}
+  .refs ol{padding-left:18px;margin:8px 0 0;}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top"><span class="dot"></span>AI Safety Tokyo</a>
+    <nav class="nav-links">
+      <a href="#context">Context</a>
+      <a href="#gap">The Gap</a>
+      <a href="#work">What We Do</a>
+      <a href="#plan">Where We're Going</a>
+      <a href="#join">Get Involved</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Our Mission</p>
+      <h1>
+        <span class="g1">Education.</span>
+        <span class="g2">Connection.</span>
+        <span>AI safety from Japan.</span>
+      </h1>
+      <p class="lede">
+        We are a community working to get academics, students, and professionals in Japan
+        thinking about and working in AI safety — building the education and the connections
+        a national field needs to take root.
+      </p>
+      <div class="hero-meta">
+        <span class="pill">100+ seminars since 2023</span>
+        <span class="pill">English &amp; Japanese tracks</span>
+        <span class="pill">Based in central Tokyo</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 — CONTEXT -->
+  <section class="band soft" id="context">
+    <div class="wrap">
+      <div class="grid-2">
+        <div>
+          <p class="num">01 — CONTEXT</p>
+          <h2>A field at an inflection point.</h2>
+          <p>
+            Awareness of advanced AI — and of its safety risks — has risen sharply across the
+            Japanese public and policy world. But national attention has concentrated almost
+            entirely on <strong>integration</strong>: putting AI to beneficial use, rather than
+            building the capacity to make it safe.
+          </p>
+          <p class="muted">
+            The result is a landscape with real momentum but a thin safety core. The people,
+            institutions, and resources exist — they are simply scattered, and rarely pointed
+            at frontier safety work.
+          </p>
+        </div>
+        <div>
+          <ul class="clean">
+            <li><span class="k">Government</span><span>Japan's AI Safety Institute focuses on benchmarks and evaluations, allocating much of the work to research-consulting firms — strong on real-world business conditions, still building depth in safety research.</span></li>
+            <li><span class="k">Industry</span><span>Companies and startups are shipping AI products with an immediate need for technical, legal, and security measures — but little in-house safety context to draw on.</span></li>
+            <li><span class="k">Academia</span><span>Research centers on AI for science. Awareness of frontline AI safety research remains low, with few channels into the international field.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 — THE GAP -->
+  <section id="gap">
+    <div class="wrap">
+      <p class="num">02 — THE GAP</p>
+      <div class="grid-2">
+        <div>
+          <h2>A world-class talent base — almost none of it aimed at AI safety.</h2>
+          <p>
+            Japan produces a deep, world-class engineering and research base. Yet global capacity
+            in technical AI safety and governance remains critically limited, and virtually none of
+            this top-percentile talent is funneled toward it.
+          </p>
+          <p class="muted">
+            The talent flows almost entirely into traditional roles — not for lack of ability,
+            but because the <strong>context and infrastructure</strong> to apply those skills to AI
+            safety simply do not yet exist locally. Where the field does exist, it is fragmented:
+            capable people and organizations working in isolation, unaware of one another.
+          </p>
+        </div>
+        <div>
+          <div class="cardset" style="grid-template-columns:1fr;">
+            <div class="mini"><h3>No on-ramp</h3><p>The field operates almost entirely in English, with few entry points for Japanese-speaking practitioners.</p></div>
+            <div class="mini"><h3>No coordination</h3><p>Government, industry, and academia rarely meet across the technical–policy divide.</p></div>
+            <div class="mini"><h3>No home</h3><p>No shared institution exists to turn latent talent into sustained safety contribution.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PULL QUOTE -->
+  <section class="band soft">
+    <div class="wrap">
+      <div class="pq">
+        <blockquote>“Talent, organizations, and resources exist in Japan — but scattered and disconnected. Our work is to weave them into a coherent community.”</blockquote>
+        <cite>The AI Safety Tokyo thesis</cite>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 — WHAT WE DO: TWO PILLARS -->
+  <section id="work">
+    <div class="wrap">
+      <p class="num">03 — WHAT WE DO</p>
+      <h2>Two pillars: educate, and connect.</h2>
+      <p class="narrow muted" style="margin-bottom:44px;">
+        Since 2023 we have run a sustained, technically serious seminar series out of central
+        Tokyo — over one hundred sessions, each built around a single paper, report, or policy
+        question. Around that core, our work falls into two pillars.
+      </p>
+
+      <div class="pillars">
+        <div class="pillar edu">
+          <span class="tag">Pillar I</span>
+          <h3>Education</h3>
+          <p>Building the on-ramps that let talented people learn the field — in both English and Japanese, from first exposure to research-level depth.</p>
+          <ul>
+            <li><span class="mk"></span><span><b>Monthly seminar series</b> — paper-by-paper study sessions spanning interpretability, alignment, capabilities forecasting, and AI governance, conducted in English.</span></li>
+            <li><span class="mk"></span><span><b>A technical AI safety accelerator</b> — a structured training program bringing hands-on safety research to Tokyo.</span></li>
+            <li><span class="mk"></span><span><b>A Japanese-language track</b> — lowering the language barrier that keeps many domestic practitioners out of a field that runs in English.</span></li>
+            <li><span class="mk"></span><span><b>Foundational courses</b> — adapting international introductory programs for a Japan-based audience.</span></li>
+          </ul>
+        </div>
+
+        <div class="pillar conn">
+          <span class="tag">Pillar II</span>
+          <h3>Connect</h3>
+          <p>Weaving researchers, institutions, and decision-makers into one ecosystem — across the technical–policy divide, and across borders.</p>
+          <ul>
+            <li><span class="mk"></span><span><b>International conferences</b> — co-organizing Tokyo's Technical AI Safety conference, connecting Japan-based researchers with leading groups abroad.</span></li>
+            <li><span class="mk"></span><span><b>Government &amp; policy</b> — working with Japan's AI Safety Institute and the national network of AI alignment researchers.</span></li>
+            <li><span class="mk"></span><span><b>Universities</b> — helping build AI safety coursework, curricula, and research capacity at Japanese institutions.</span></li>
+            <li><span class="mk"></span><span><b>Embassies &amp; diplomacy</b> — co-organizing AI safety forums and dialogues that bring policy, industry, and academic actors together.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THEORY OF CHANGE / PLAN (dark) -->
+  <section class="band dark" id="plan">
+    <div class="wrap">
+      <p class="num" style="color:#93c5fd;">04 — WHERE WE'RE GOING</p>
+      <div class="grid-2">
+        <div>
+          <h2 style="color:#fff;">From fragmentation to a coherent community.</h2>
+          <p class="muted">
+            The pieces are in place; what's missing is reach and connective tissue. To realize the
+            thesis we need more <span class="kw2">scale</span> and more <span class="kw">linkages</span> —
+            united under one organization.
+          </p>
+        </div>
+        <div></div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="n">SCALE — EDUCATION</div>
+          <h3>Run training at a steady cadence</h3>
+          <p>Regular English and Japanese tracks, plus briefings and consulting tailored to the real needs of Japan's AI industry — research-consulting firms, practitioners, and academic working groups deploying AI that needs safety and security measures.</p>
+        </div>
+        <div class="step">
+          <div class="n">SCALE — RESEARCH</div>
+          <h3>Convene the field</h3>
+          <p>An annual Tokyo Technical AI Safety conference, sustained exchange between researchers in Japan and abroad, and hackathons in partnership with international research organizations.</p>
+        </div>
+        <div class="step">
+          <div class="n">LINKAGES — ECOSYSTEM</div>
+          <h3>Build the connective tissue</h3>
+          <p>Partnerships with embassies and chambers of commerce to host governance dialogues among ambassadors, policymakers, and business leaders; deeper ties with universities; and broader community building for newcomers.</p>
+        </div>
+        <div class="step">
+          <div class="n">LINKAGES — A HOME</div>
+          <h3>Establish a co-working hub</h3>
+          <p>A dedicated physical space for AI safety in Tokyo — modeled on established hubs abroad — to give the community a shared home where collaboration compounds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="join">
+    <div class="wrap">
+      <div class="cta">
+        <h2>The window is narrow. Join us.</h2>
+        <p>
+          Whether you are a researcher, a professional considering a pivot, a domain expert, or a
+          funder, there is a role for you in shaping how transformative AI develops — from Japan.
+        </p>
+        <a class="btn" href="mailto:hello@aisafety.tokyo">Get in touch</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="foot-inner">
+    <p><strong>AI Safety Tokyo</strong> · Tokyo, Japan · <a href="https://aisafety.tokyo">aisafety.tokyo</a></p>
+    <p class="muted" style="margin:0;">Education · Connection · AI safety from Japan.</p>
+  </div>
+</footer>
+
+</body>
+</html>
