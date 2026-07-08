@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CyBench evaluation: work summary and effort</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--gray-700);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 120px;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (max-width: 920px) { .page { grid-template-columns: 1fr; } nav { display: none; } }
+
+  nav { position: sticky; top: 32px; align-self: start; font-size: 13px; }
+  nav .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 12px;
+  }
+  nav a {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 2px solid var(--gray-300);
+    color: var(--gray-700);
+    text-decoration: none;
+  }
+  nav a:hover { color: var(--slate); border-color: var(--slate); }
+
+  header { margin-bottom: 12px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 32px;
+    color: var(--slate);
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+  }
+  .tldr {
+    border: 1.5px solid var(--gray-300);
+    border-left: 3px solid var(--clay);
+    border-radius: 10px;
+    background: #fff;
+    padding: 16px 18px;
+    margin-bottom: 8px;
+  }
+  .tldr b { color: var(--slate); }
+
+  .metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 36px;
+    margin: 16px 0 6px;
+    padding: 14px 18px;
+    border: 1px dashed var(--gray-300);
+    border-radius: 10px;
+  }
+  .metrics div { min-width: 90px; }
+  .metrics .k {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+  }
+  .metrics .v {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--slate);
+    line-height: 1.2;
+  }
+  .metrics .v .sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-left: 4px;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--slate);
+    margin: 40px 0 14px;
+    scroll-margin-top: 24px;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--slate);
+    margin: 22px 0 8px;
+  }
+  p { margin-bottom: 12px; max-width: 680px; }
+  ul, ol { margin: 0 0 12px 22px; max-width: 680px; }
+  li { margin-bottom: 6px; }
+  code { font-family: var(--mono); font-size: 13px; }
+
+  details {
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    background: #fff;
+    margin: 14px 0;
+    overflow: hidden;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--slate);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before {
+    content: "\25B8";
+    color: var(--clay);
+    font-family: var(--sans);
+    font-size: 12px;
+    transition: transform 120ms;
+  }
+  details[open] summary::before { transform: rotate(90deg); }
+  summary .where {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-left: auto;
+    text-align: right;
+  }
+  details .body { padding: 0 16px 16px; }
+  details .body p { font-size: 14px; }
+
+  .callout {
+    display: flex;
+    gap: 12px;
+    border: 1.5px solid var(--oat);
+    background: rgba(227,218,204,0.35);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    font-size: 14px;
+    max-width: 760px;
+  }
+  .callout .ico { color: var(--clay); font-weight: 600; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 820px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--gray-300);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    font-weight: 600;
+    border-bottom: 1.5px solid var(--gray-300);
+  }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td {
+    border-top: 1.5px solid var(--gray-300);
+    border-bottom: none;
+    font-weight: 600;
+    color: var(--slate);
+  }
+
+  .ok   { color: var(--olive); font-weight: 600; }
+  .warn { color: var(--clay);  font-weight: 600; }
+
+  .figure {
+    background: #fff;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    padding: 18px 18px 10px;
+    margin: 16px 0;
+  }
+  .figure svg { width: 100%; height: auto; display: block; }
+  .figure .caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-top: 6px;
+  }
+  .svg-ph { font-family: var(--mono); font-size: 11px; fill: var(--gray-700); }
+  .svg-tick { font-family: var(--mono); font-size: 10px; fill: var(--gray-500); }
+  .svg-note { font-family: var(--sans); font-size: 10.5px; fill: var(--gray-500); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#overview">Overview</a>
+    <a href="#packages">Work packages</a>
+    <a href="#daybyday">Day-by-day log</a>
+    <a href="#deliverables">Deliverables</a>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">CyBench &middot; project work report</div>
+      <h1>CyBench evaluation: work summary and effort</h1>
+    </header>
+
+    <h2 id="overview">Overview</h2>
+    <p>Between April 22 and May 19, 2026 we stood up the CyBench environment on Kubernetes, validated all
+      39 tasks, and ran 243 evaluations across 20 run configurations. The work falls into two phases:
+      <b>phase 1</b> (Apr 22 - May 10), environment setup plus baseline evaluations, and <b>phase 2</b>
+      (May 13-19), a study of how much the agent harness matters. Evaluation runs themselves mostly
+      executed unattended overnight; the effort figures below count human working time, not eval
+      wall-clock.</p>
+
+    <div class="figure">
+      <svg viewBox="0 0 1000 160" role="img" aria-label="Timeline of CyBench work, April 22 to May 19, 2026">
+        <!-- axis -->
+        <line x1="40" y1="112" x2="960" y2="112" stroke="#D1CFC5" stroke-width="1.5"/>
+        <!-- week ticks -->
+        <g>
+          <line x1="40"    y1="108" x2="40"    y2="116" stroke="#D1CFC5"/><text x="40"    y="132" text-anchor="middle" class="svg-tick">Apr 20</text>
+          <line x1="229.4" y1="108" x2="229.4" y2="116" stroke="#D1CFC5"/><text x="229.4" y="132" text-anchor="middle" class="svg-tick">Apr 27</text>
+          <line x1="418.8" y1="108" x2="418.8" y2="116" stroke="#D1CFC5"/><text x="418.8" y="132" text-anchor="middle" class="svg-tick">May 4</text>
+          <line x1="608.2" y1="108" x2="608.2" y2="116" stroke="#D1CFC5"/><text x="608.2" y="132" text-anchor="middle" class="svg-tick">May 11</text>
+          <line x1="797.6" y1="108" x2="797.6" y2="116" stroke="#D1CFC5"/><text x="797.6" y="132" text-anchor="middle" class="svg-tick">May 18</text>
+          <line x1="960"   y1="108" x2="960"   y2="116" stroke="#D1CFC5"/><text x="960"   y="132" text-anchor="middle" class="svg-tick">May 24</text>
+        </g>
+        <!-- burst 1: Apr 22-30 -->
+        <rect x="94.1" y="62" width="216.5" height="24" rx="6" fill="rgba(217,119,87,0.18)" stroke="#D97757" stroke-width="1.5"/>
+        <text x="202.4" y="50" text-anchor="middle" class="svg-ph">1 &middot; setup + baseline evaluations</text>
+        <!-- interlude markers: May 1, 8, 10 -->
+        <g fill="#E3DACC" stroke="#87867F" stroke-width="1">
+          <circle cx="337.6" cy="74" r="4"/>
+          <circle cx="527.0" cy="74" r="4"/>
+          <circle cx="581.2" cy="74" r="4"/>
+        </g>
+        <text x="459" y="50" text-anchor="middle" class="svg-note">documentation</text>
+        <!-- burst 2: May 13-19 -->
+        <rect x="662.3" y="62" width="162.4" height="24" rx="6" fill="rgba(20,20,19,0.10)" stroke="#141413" stroke-width="1.5"/>
+        <text x="743.5" y="50" text-anchor="middle" class="svg-ph">2 &middot; agent-harness study</text>
+        <!-- light marker May 23 -->
+        <circle cx="933.0" cy="74" r="4" fill="#E3DACC" stroke="#87867F" stroke-width="1"/>
+      </svg>
+      <div class="caption">bars = sustained work bursts &middot; dots = single-day documentation work (May 1, 8, 10; final chart polish May 23)</div>
+    </div>
+
+    <h2 id="packages">Work packages</h2>
+    <p>Effort is human working time estimated from work-session records and artifact timestamps,
+      rounded to half-days. Unattended eval runtime is excluded. Phase 1 covers setup and baseline
+      evaluations (Apr 22 - May 10); phase 2 covers the agent-harness study (May 13-19).</p>
+    <table>
+      <thead><tr>
+        <th>work package</th><th>description</th>
+        <th class="num">phase 1</th><th class="num">phase 2</th><th class="num">total</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Initial Analysis</b></td>
+          <td>Understand the benchmark; bring up the Kubernetes environment; smoke-test all 39 tasks and
+            verify official solution scripts; identify the 4 tasks that cannot run reliably.</td>
+          <td class="num">~1.5 d</td>
+          <td class="num">-</td>
+          <td class="num">~1.5 d</td>
+        </tr>
+        <tr>
+          <td><b>Initial Evaluation</b></td>
+          <td>Baseline run of Claude Opus 4.7 on the easy variant (65% solve rate) plus two retry rounds
+            on failed tasks to separate stable failures from flaky ones.</td>
+          <td class="num">~1.5 d</td>
+          <td class="num">-</td>
+          <td class="num">~1.5 d</td>
+        </tr>
+        <tr>
+          <td><b>Analysis</b></td>
+          <td>Investigate results: gap analysis, refusal and content-filter study, per-task failure-mode
+            taxonomy, solution walkthroughs, token and cost decomposition, cross-run comparisons.</td>
+          <td class="num">~3 d</td>
+          <td class="num">~1.5 d</td>
+          <td class="num">~4.5 d</td>
+        </tr>
+        <tr>
+          <td><b>Additional Evaluation</b></td>
+          <td>Follow-up experiments. Phase 1: GPT comparison run and extended-reasoning (xhigh) ablation.
+            Phase 2: Claude Code harness integration and full run, five harness ablations, native Claude
+            Code comparison, GPT rerun with a 5M-token budget.</td>
+          <td class="num">~2 d</td>
+          <td class="num">~3 d</td>
+          <td class="num">~5 d</td>
+        </tr>
+        <tr>
+          <td><b>Reporting</b></td>
+          <td>Environment and scaffold documentation, run reports, and the final harness-study report
+            with token-category and cost figures.</td>
+          <td class="num">~1 d</td>
+          <td class="num">~1.5 d</td>
+          <td class="num">~2.5 d</td>
+        </tr>
+        <tr class="total">
+          <td>Total</td>
+          <td>Apr 22 - May 19, 2026 (4 calendar weeks)</td>
+          <td class="num">~9 d</td>
+          <td class="num">~6 d</td>
+          <td class="num">~15 d</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="daybyday">Day-by-day log</h2>
+
+    <h3>Phase 1: setup and baseline evaluations (Apr 22-30)</h3>
+
+    <details>
+      <summary>Apr 22 &middot; Environment bring-up and smoke tests <span class="where">initial analysis &middot; ~1 d</span></summary>
+      <div class="body">
+        <p>Stood up CyBench on Kubernetes (minikube) and smoke-tested all 39 tasks with a small model
+          (46 short evals in two batches). Outcome: 38/39 environments viable; one task (<code>chunky</code>)
+          cannot schedule on an 8 GiB cluster.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Apr 22-23 &middot; Solution-script verification <span class="where">initial analysis &middot; ~0.5 d</span></summary>
+      <div class="body">
+        <p>Ran the official solution scripts across all reachable tasks (37 evals) to confirm each
+          environment actually solves. Found one more broken task under Kubernetes. Together with the
+          smoke tests this fixed the working set at 35-36 scoreable tasks and a 4-task exclusion list.</p>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Apr 23 &middot; Baseline run: Claude Opus 4.7, easy variant <span class="where">initial evaluation &middot; ~1 d</span></summary>
+      <div class="body">
+        <p>The headline baseline: 36 tasks, message limit 50, run serially. Result:
+          <span class="ok">23/35 = 65%</span> solve rate. About 2 hours of eval wall-clock.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Apr 23-24 &middot; Retry rounds 2 and 3 <span class="where">initial evaluation &middot; ~0.5 d</span></summary>
+      <div class="body">
+        <p>Best-of-N reruns on the failures (11 tasks in round 2, 5 in round 3) to distinguish stable
+          failures from flaky ones.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Apr 27 &middot; GPT comparison run <span class="where">additional evaluation &middot; ~1 d</span></summary>
+      <div class="body">
+        <p>Full 36-task run with a GPT model plus a 9-task retry round and one hard-variant probe. Also
+          wrote a manual walkthrough of the <code>diffecient</code> solution path, a task both models
+          struggled with.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Apr 28 &middot; Results analysis: refusals, gaps, reasoning config <span class="where">analysis &middot; ~1 d</span></summary>
+      <div class="body">
+        <p>Built two refusal scanners (LLM-based and static) and ran them across the trajectories, wrote a
+          content-filter breakdown, completed run reports and a gap analysis for both the Claude and GPT
+          runs, and investigated reasoning-effort API options to prepare the extended-reasoning experiment.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Apr 28-30 &middot; Extended-reasoning (xhigh) run and failure taxonomy <span class="where">additional evaluation, analysis &middot; ~2 d</span></summary>
+      <div class="body">
+        <p>35 tasks at maximum reasoning effort over three evenings, plus retry rounds. Verdict:
+          <span class="warn">22/35 = 63%, within noise of baseline</span>; xhigh flipped 2 fails to passes
+          but 3 passes to fails. Closed with a per-task failure-mode taxonomy of the 7 persistent failures
+          (conceptually stuck, budget burned on environment issues, silent stops).</p>
+      </div>
+    </details>
+
+    <h3>Phase 1, continued: documentation (May 1-10)</h3>
+
+    <details>
+      <summary>May 1 / 8 / 10 &middot; Documentation and feasibility notes <span class="where">reporting, analysis &middot; ~1.5 d</span></summary>
+      <div class="body">
+        <p>Scaffold documentation (May 1), environment and tech-stack documentation with all reports
+          organized into one place (May 8), and a feasibility study of applying a published agent-failure
+          taxonomy (AGENTRX) to CyBench trajectories (May 10).</p>
+      </div>
+    </details>
+
+    <h3>Phase 2: agent-harness study (May 13-19)</h3>
+
+    <details>
+      <summary>May 13 &middot; Environment documentation to shareable HTML <span class="where">reporting &middot; ~0.5 d</span></summary>
+      <div class="body">
+        <p>Converted the environment documentation into a self-contained HTML explainer for circulation.</p>
+      </div>
+    </details>
+
+    <details open>
+      <summary>May 13-14 &middot; Claude Code harness integration and full run <span class="where">additional evaluation, analysis &middot; ~1.5 d</span></summary>
+      <div class="body">
+        <p>Integrated the Claude Code agent harness into the evaluation framework and ran the full easy
+          set with it. Same push produced deep-dives into the <code>locktalk</code> task (thinking vs
+          no-thinking, success walkthrough, behavior when web access is blocked) and analyses of
+          token-limit terminations.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>May 15-16 &middot; Harness ablations <span class="where">additional evaluation, analysis &middot; ~1.5 d</span></summary>
+      <div class="body">
+        <p>Surveyed ~24 references on harness engineering and token overhead, then ran five ablations:
+          stripping the skill list, stripping skills plus system prompt, a "diet" minimal-prompt variant,
+          diet plus compaction, and diet across the full easy set. Followed up with per-task comparisons
+          (diet vs baseline, ReAct vs diet) and a compaction-issues analysis.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>May 17 &middot; Native Claude Code comparison <span class="where">additional evaluation &middot; ~0.5 d</span></summary>
+      <div class="body">
+        <p>Ran Claude Code natively (outside the evaluation framework) against CyBench tasks in docker.
+          Smoke test <span class="ok">passed</span>; captured the default system prompt and analyzed token
+          consumption of a successful run for comparison against the framework-mediated harness.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>May 17-18 &middot; GPT rerun with 5M-token budget <span class="where">additional evaluation, analysis &middot; ~1 d</span></summary>
+      <div class="body">
+        <p>Full GPT rerun under a 5M output-token limit with best-of-N aggregation (any success counts;
+          safety-filter failures tracked separately). Produced the never-solved-tasks analysis and a
+          Claude Code vs naive-API comparison.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>May 19 (+23) &middot; Final harness report <span class="where">reporting &middot; ~1 d</span></summary>
+      <div class="body">
+        <p>Final write-up of the harness study: failure modes, token-category decomposition figures, and
+          cost-comparison charts (cost differences are smaller than raw token-count differences suggest).
+          Light chart polish on May 23.</p>
+      </div>
+    </details>
+
+    <h2 id="deliverables">Deliverables</h2>
+    <ul>
+      <li>Validated CyBench environment on Kubernetes with a documented 4-task exclusion list and
+        solution-script verification for every task.</li>
+      <li>Baseline report: Claude Opus 4.7, easy variant, 65% solve rate, with per-task results and gap
+        analysis against retry rounds.</li>
+      <li>GPT comparison report (initial run plus 5M-token-budget rerun with best-of-N aggregation).</li>
+      <li>Extended-reasoning (xhigh) ablation report: no significant gain over baseline.</li>
+      <li>Refusal and content-filter analysis with reusable scanners.</li>
+      <li>Per-task failure-mode taxonomy for persistent failures.</li>
+      <li>Agent-harness study: Claude Code integration, five prompt/skill ablations, native-harness
+        comparison, and token/cost decomposition figures.</li>
+      <li>Environment, scaffold, and tech-stack documentation in shareable form.</li>
+    </ul>
+  </main>
+
+</div>
+</body>
+</html>

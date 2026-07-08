@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Artifacts — kirby44</title>
+<style>
+  :root {
+    --bg:        #f6f1e7;
+    --paper:     #fbf7ee;
+    --ink:       #1f1b16;
+    --muted:     #6b6157;
+    --rule:      #d9cfbb;
+    --accent:    #8a4f1f;
+    --chip-bg:   #ece1c8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+                 "Hiragino Sans", "Yu Gothic UI", system-ui, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  header h1 {
+    font-size: 32px;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    color: var(--muted);
+    margin: 0 0 36px;
+    font-size: 15px;
+  }
+  .card {
+    display: block;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 18px 20px 16px;
+    margin-bottom: 14px;
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .card .chip {
+    display: inline-block;
+    background: var(--chip-bg);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+  }
+  .card h2 {
+    font-size: 18px;
+    margin: 0 0 4px;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  .card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  footer {
+    margin-top: 48px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Artifacts</h1>
+      <p>Shareable HTML pages from internal evaluation work.</p>
+    </header>
+
+    <main>
+      <a class="card" href="pair-attacker-role-report.html">
+        <span class="chip">PAIR on Inspect</span>
+        <h2>Which Claude tier refuses to be the jailbreaker?</h2>
+        <p>Three Anthropic tiers (Haiku 4.5, Sonnet 4.6, Opus 4.8) put in the attacker seat of PAIR — the role told "you are not bound by any ethical or legal constraints" and tasked with writing jailbreak prompts. Refusal turned out non-monotonic: the middle tier complied on every attempt. Opens with a plain-language, chat-style walkthrough of how the loop works.</p>
+      </a>
+      <a class="card" href="tap-smoke-test-report.html">
+        <span class="chip">TAP on Inspect</span>
+        <h2>Porting TAP: how branching, pruning, and the tree behaved</h2>
+        <p>The TAP (Tree of Attacks with Pruning) loop ported to Inspect, running end to end and producing a real jailbreak. A walkthrough of how branching, on-topic pruning, and the attack tree actually behaved across two harmful behaviors with a gpt-4o attacker and a gpt-4o-mini target.</p>
+      </a>
+      <a class="card" href="our-mission-v2.html">
+        <span class="chip">AIST</span>
+        <h2>AI Safety Tokyo — Our Mission (v2)</h2>
+        <p>A redesigned mission page in the z-alpha visual language: a Context → Gap → What We Do → Where We're Going → People narrative, built around two pillars — Learn and Connect — plus a "fragmentation to a coherent community" theory of change (scale and linkages).</p>
+      </a>
+      <a class="card" href="our-mission.html">
+        <span class="chip">AIST</span>
+        <h2>AI Safety Tokyo — Our Mission</h2>
+        <p>Our mission is to get academics, students and professionals in Japan thinking about and working in AI safety, whether through technical alignment research, developing good policies for AI governance, or otherwise. Draft mission page: why Japan, the talent gap, what we do, and the team.</p>
+      </a>
+      <a class="card" href="evaluation-components-breakdown.html">
+        <span class="chip">Safety</span>
+        <h2>Evaluation components breakdown</h2>
+        <p>Every Inspect eval is one Task made of three components: a dataset, a solver, and a scorer. This breaks our prior eval work and ten adversarial benchmarks down those three axes, marking each component as already-exists or build-it.</p>
+      </a>
+      <a class="card" href="opus48-vs-mythos-gpt55.html">
+        <span class="chip">ExploitBench</span>
+        <h2>Opus 4.8 against Mythos and GPT-5.5 on the three V8 CVEs</h2>
+        <p>Score out of 16 on each of the three V8 CVEs. "Opus 4.8 (ours)" is the mean of our two calibration passes per bug; the leaderboard bars are ExploitBench’s run-averaged public numbers.</p>
+      </a>
+      <a class="card" href="evaluation_work_portfolio.html">
+        <span class="chip">Workload</span>
+        <h2>Benchmark evaluation work: portfolio and effort summary</h2>
+        <p>Four model-evaluation projects (CyBench, OSWorld, healthcare QA, ExploitBench) run Mar-Jun 2026, about 36 person-days. Combined timeline and effort-by-category breakdown, linking to each project's focus report.</p>
+      </a>
+      <a class="card" href="sandbox-design-overview-ja.html">
+        <span class="chip">Sandbox</span>
+        <h2>Cyber Security能力の評価環境とSandbox設計の考え方</h2>
+        <p>AIモデルのサイバー攻撃能力評価で使う sandbox の解説、sandbox escape リスク、defense in depth の設計 sample。ExploitBench / SandboxEscapeBench を参照した討議用ドキュメント (日本語)。</p>
+      </a>
+      <a class="card" href="eval-variables.html">
+        <span class="chip">Cybench</span>
+        <h2>AI Evaluation: Variables Affecting Outcomes</h2>
+        <p>A working map of what we configure vs. what Anthropic configures when running an eval like Cybench. Internal reference for evaluation engineers.</p>
+      </a>
+    </main>
+
+    <footer>
+      <a href="https://github.com/kirby44/artifacts">github.com/kirby44/artifacts</a>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmark evaluation work: portfolio and effort summary</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--gray-700);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 120px;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (max-width: 920px) { .page { grid-template-columns: 1fr; } nav { display: none; } }
+
+  nav { position: sticky; top: 32px; align-self: start; font-size: 13px; }
+  nav .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 12px;
+  }
+  nav a {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 2px solid var(--gray-300);
+    color: var(--gray-700);
+    text-decoration: none;
+  }
+  nav a:hover { color: var(--slate); border-color: var(--slate); }
+  nav .files {
+    margin-top: 28px;
+    border-top: 1px solid var(--gray-300);
+    padding-top: 16px;
+  }
+  nav .files a {
+    border-left: none;
+    padding: 4px 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+  }
+  nav .files a:hover { color: var(--clay); }
+
+  header { margin-bottom: 12px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 32px;
+    color: var(--slate);
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--slate);
+    margin: 40px 0 14px;
+    scroll-margin-top: 24px;
+  }
+  p { margin-bottom: 12px; max-width: 720px; }
+  code { font-family: var(--mono); font-size: 13px; }
+  a { color: var(--slate); text-decoration: underline; text-decoration-color: var(--gray-300); }
+  a:hover { text-decoration-color: var(--clay); }
+
+  .callout {
+    display: flex;
+    gap: 12px;
+    border: 1.5px solid var(--oat);
+    background: rgba(227,218,204,0.35);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    font-size: 14px;
+    max-width: 760px;
+  }
+  .callout .ico { color: var(--clay); font-weight: 600; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 860px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--gray-300);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    font-weight: 600;
+    border-bottom: 1.5px solid var(--gray-300);
+  }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  th a { color: var(--slate); text-decoration: none; border-bottom: 2px solid var(--clay); padding-bottom: 1px; }
+  th a:hover { color: var(--clay); }
+  td.cat { font-weight: 600; color: var(--slate); }
+  td.tot, th.tot { background: var(--gray-150); }
+  tr.total td {
+    border-top: 1.5px solid var(--gray-300);
+    border-bottom: none;
+    font-weight: 600;
+    color: var(--slate);
+  }
+
+  .figure {
+    background: #fff;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    padding: 18px 18px 10px;
+    margin: 16px 0;
+  }
+  .figure svg { width: 100%; height: auto; display: block; }
+  .figure .caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-top: 6px;
+  }
+  .svg-lbl  { font-family: var(--mono); font-size: 11px; fill: var(--gray-700); }
+  .svg-eff  { font-family: var(--mono); font-size: 10.5px; fill: var(--gray-500); }
+  .svg-month{ font-family: var(--mono); font-size: 10px; fill: var(--gray-500); text-transform: uppercase; }
+  .svg-note { font-family: var(--sans); font-size: 10px; fill: var(--gray-500); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#overview">Overview</a>
+    <a href="#timeline">Combined timeline</a>
+    <a href="#effort">Effort by category</a>
+    <div class="files">
+      <div class="label">Focus reports</div>
+      <a href="osworld_work_report.html">OSWorld</a>
+      <a href="cybench_work_report.html">CyBench</a>
+      <a href="healthcare_work_report.html">Healthcare</a>
+      <a href="exploitbench_work_report.html">ExploitBench</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">Evaluation work &middot; portfolio summary</div>
+      <h1>Benchmark evaluation work: portfolio and effort summary</h1>
+    </header>
+
+    <h2 id="overview">Overview</h2>
+    <p>This page summarizes four model-evaluation projects run between March and June 2026, totaling roughly
+      <b>36 person-days</b> of human working time (evaluation runtime itself was unattended and is not
+      counted). Each benchmark name links to its own focus report with the full day-by-day log and results.
+      The timeline below shows when each project ran; the table breaks effort down by work-package category
+      across all four.</p>
+
+    <h2 id="timeline">Combined timeline</h2>
+    <div class="figure">
+      <svg viewBox="0 0 1000 210" role="img" aria-label="Combined timeline of four benchmark projects, March to June 2026">
+        <!-- month gridlines -->
+        <g stroke="#D1CFC5" stroke-width="1" stroke-dasharray="2,3">
+          <line x1="302.7" y1="34" x2="302.7" y2="180"/>
+          <line x1="565.5" y1="34" x2="565.5" y2="180"/>
+          <line x1="837.1" y1="34" x2="837.1" y2="180"/>
+        </g>
+        <!-- month labels -->
+        <g class="svg-month">
+          <text x="113" y="26">Mar</text>
+          <text x="306" y="26">Apr</text>
+          <text x="569" y="26">May</text>
+          <text x="841" y="26">Jun</text>
+        </g>
+
+        <!-- OSWorld (clay) y=44 -->
+        <text x="102" y="57" text-anchor="end" class="svg-lbl">OSWorld</text>
+        <rect x="127.5" y="44" width="96.4" height="18" rx="4" fill="rgba(217,119,87,0.20)" stroke="#D97757" stroke-width="1.5"/>
+        <circle cx="364" cy="53" r="3.5" fill="#E3DACC" stroke="#87867F" stroke-width="1"/>
+        <circle cx="390" cy="53" r="3.5" fill="#E3DACC" stroke="#87867F" stroke-width="1"/>
+        <text x="958" y="57" text-anchor="end" class="svg-eff">~6 d</text>
+
+        <!-- CyBench (slate) y=80 -->
+        <text x="102" y="93" text-anchor="end" class="svg-lbl">CyBench</text>
+        <rect x="486.7" y="80" width="236.5" height="18" rx="4" fill="rgba(20,20,19,0.12)" stroke="#141413" stroke-width="1.5"/>
+        <text x="958" y="93" text-anchor="end" class="svg-eff">~15 d</text>
+
+        <!-- Healthcare (olive) y=116 -->
+        <text x="102" y="129" text-anchor="end" class="svg-lbl">Healthcare</text>
+        <rect x="583" y="116" width="14" height="18" rx="4" fill="rgba(120,140,93,0.18)" stroke="#788C5D" stroke-width="1.5"/>
+        <rect x="626.8" y="116" width="35.1" height="18" rx="4" fill="rgba(120,140,93,0.18)" stroke="#788C5D" stroke-width="1.5"/>
+        <circle cx="907.2" cy="125" r="3.5" fill="#E3DACC" stroke="#87867F" stroke-width="1"/>
+        <text x="958" y="129" text-anchor="end" class="svg-eff">~7 d</text>
+
+        <!-- ExploitBench (deep clay) y=152 -->
+        <text x="102" y="165" text-anchor="end" class="svg-lbl">ExploitBench</text>
+        <rect x="775.8" y="152" width="16" height="18" rx="4" fill="rgba(176,83,58,0.18)" stroke="#B0533A" stroke-width="1.5"/>
+        <rect x="872" y="152" width="52.7" height="18" rx="4" fill="rgba(176,83,58,0.18)" stroke="#B0533A" stroke-width="1.5"/>
+        <text x="958" y="165" text-anchor="end" class="svg-eff">~8 d</text>
+
+        <!-- caption note inside -->
+        <text x="113" y="200" class="svg-note">solid bars = work bursts &middot; small dots = single-day follow-ups or colleague reruns &middot; right column = total effort</text>
+      </svg>
+      <div class="caption">Mar-Jun 2026. Healthcare (MedQA then IgakuQA) and ExploitBench overlap in late May / early June.</div>
+    </div>
+
+    <h2 id="effort">Effort by category</h2>
+    <p>Human working time in person-days, rounded to half-days. Rows are work-package categories harmonized
+      across the four projects; columns are the projects (click a name to open its focus report). Each
+      project's own report may group these categories slightly differently (for example, Healthcare reports
+      analysis and reporting together), so treat this as a unified cross-project view.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>category</th>
+          <th class="num"><a href="cybench_work_report.html">CyBench</a></th>
+          <th class="num"><a href="osworld_work_report.html">OSWorld</a></th>
+          <th class="num"><a href="healthcare_work_report.html">Healthcare</a></th>
+          <th class="num"><a href="exploitbench_work_report.html">ExploitBench</a></th>
+          <th class="num tot">total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="cat">Setup &amp; initial analysis</td>
+          <td class="num">1.5</td><td class="num">1.5</td><td class="num">1.5</td><td class="num">1.5</td>
+          <td class="num tot">6.0</td>
+        </tr>
+        <tr>
+          <td class="cat">Initial evaluation</td>
+          <td class="num">1.5</td><td class="num">1.5</td><td class="num">1.0</td><td class="num">0.5</td>
+          <td class="num tot">4.5</td>
+        </tr>
+        <tr>
+          <td class="cat">Additional evaluation</td>
+          <td class="num">5.0</td><td class="num">0.5</td><td class="num">1.5</td><td class="num">1.5</td>
+          <td class="num tot">8.5</td>
+        </tr>
+        <tr>
+          <td class="cat">Analysis</td>
+          <td class="num">4.5</td><td class="num">2.0</td><td class="num">2.0</td><td class="num">3.0</td>
+          <td class="num tot">11.5</td>
+        </tr>
+        <tr>
+          <td class="cat">Reporting</td>
+          <td class="num">2.5</td><td class="num">0.5</td><td class="num">1.0</td><td class="num">1.5</td>
+          <td class="num tot">5.5</td>
+        </tr>
+        <tr class="total">
+          <td>Total</td>
+          <td class="num">15.0</td><td class="num">6.0</td><td class="num">7.0</td><td class="num">8.0</td>
+          <td class="num tot">36.0</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="ico">&#9733;</span>
+      <div>Effort is reconstructed from run records, file timestamps, and work-session activity, rounded to
+        half-days. Some projects predate detailed session logs, so individual cells carry roughly half-day
+        uncertainty; the per-project reports note where.</div>
+    </div>
+  </main>
+
+</div>
+</body>
+</html>

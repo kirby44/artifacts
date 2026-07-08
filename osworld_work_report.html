@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSWorld evaluation: work summary and effort</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--gray-700);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 120px;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (max-width: 920px) { .page { grid-template-columns: 1fr; } nav { display: none; } }
+
+  nav { position: sticky; top: 32px; align-self: start; font-size: 13px; }
+  nav .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 12px;
+  }
+  nav a {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 2px solid var(--gray-300);
+    color: var(--gray-700);
+    text-decoration: none;
+  }
+  nav a:hover { color: var(--slate); border-color: var(--slate); }
+
+  header { margin-bottom: 12px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 32px;
+    color: var(--slate);
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--slate);
+    margin: 40px 0 14px;
+    scroll-margin-top: 24px;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--slate);
+    margin: 22px 0 8px;
+  }
+  p { margin-bottom: 12px; max-width: 680px; }
+  ul, ol { margin: 0 0 12px 22px; max-width: 680px; }
+  li { margin-bottom: 6px; }
+  code { font-family: var(--mono); font-size: 13px; }
+
+  details {
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    background: #fff;
+    margin: 14px 0;
+    overflow: hidden;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--slate);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before {
+    content: "\25B8";
+    color: var(--clay);
+    font-family: var(--sans);
+    font-size: 12px;
+    transition: transform 120ms;
+  }
+  details[open] summary::before { transform: rotate(90deg); }
+  summary .where {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-left: auto;
+    text-align: right;
+  }
+  details .body { padding: 0 16px 16px; }
+  details .body p { font-size: 14px; }
+
+  .callout {
+    display: flex;
+    gap: 12px;
+    border: 1.5px solid var(--oat);
+    background: rgba(227,218,204,0.35);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    font-size: 14px;
+    max-width: 760px;
+  }
+  .callout .ico { color: var(--clay); font-weight: 600; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 820px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--gray-300);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    font-weight: 600;
+    border-bottom: 1.5px solid var(--gray-300);
+  }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td {
+    border-top: 1.5px solid var(--gray-300);
+    border-bottom: none;
+    font-weight: 600;
+    color: var(--slate);
+  }
+
+  .ok   { color: var(--olive); font-weight: 600; }
+  .warn { color: var(--clay);  font-weight: 600; }
+
+  .figure {
+    background: #fff;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    padding: 18px 18px 10px;
+    margin: 16px 0;
+  }
+  .figure svg { width: 100%; height: auto; display: block; }
+  .figure .caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-top: 6px;
+  }
+  .svg-ph { font-family: var(--mono); font-size: 11px; fill: var(--gray-700); }
+  .svg-tick { font-family: var(--mono); font-size: 10px; fill: var(--gray-500); }
+  .svg-note { font-family: var(--sans); font-size: 10.5px; fill: var(--gray-500); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#overview">Overview</a>
+    <a href="#packages">Work packages</a>
+    <a href="#daybyday">Day-by-day log</a>
+    <a href="#results">Results</a>
+    <a href="#deliverables">Deliverables</a>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">OSWorld &middot; project work report</div>
+      <h1>OSWorld evaluation: work summary and effort</h1>
+    </header>
+
+    <h2 id="overview">Overview</h2>
+    <p>Between March 12 and March 23, 2026 we evaluated computer-use agents on OSWorld, a desktop GUI
+      benchmark where the agent drives a real Ubuntu desktop from screenshots. The core question was how
+      three frontier models compare, and whether running the desktop in a Japanese locale (menus and system
+      text in Japanese, instructions still in English) degrades performance. We ran a 3-model by 2-locale
+      systematic comparison on a 21-task subset, plus a full-corpus baseline, and followed up with failure,
+      locale, and token-cost analyses. A small number of additional runs were executed for colleagues in
+      April. Evaluation runs themselves mostly executed unattended; the effort figures below count human
+      working time.</p>
+
+    <div class="figure">
+      <svg viewBox="0 0 1000 160" role="img" aria-label="Timeline of OSWorld work, March to April 2026">
+        <line x1="40" y1="112" x2="960" y2="112" stroke="#D1CFC5" stroke-width="1.5"/>
+        <g>
+          <line x1="40"  y1="108" x2="40"  y2="116" stroke="#D1CFC5"/><text x="40"  y="132" text-anchor="middle" class="svg-tick">Mar 10</text>
+          <line x1="224" y1="108" x2="224" y2="116" stroke="#D1CFC5"/><text x="224" y="132" text-anchor="middle" class="svg-tick">Mar 17</text>
+          <line x1="408" y1="108" x2="408" y2="116" stroke="#D1CFC5"/><text x="408" y="132" text-anchor="middle" class="svg-tick">Mar 24</text>
+          <line x1="592" y1="108" x2="592" y2="116" stroke="#D1CFC5"/><text x="592" y="132" text-anchor="middle" class="svg-tick">Mar 31</text>
+          <line x1="776" y1="108" x2="776" y2="116" stroke="#D1CFC5"/><text x="776" y="132" text-anchor="middle" class="svg-tick">Apr 7</text>
+          <line x1="960" y1="108" x2="960" y2="116" stroke="#D1CFC5"/><text x="960" y="132" text-anchor="middle" class="svg-tick">Apr 14</text>
+        </g>
+        <!-- main work Mar 12-23 -->
+        <rect x="92.6" y="62" width="289.4" height="24" rx="6" fill="rgba(217,119,87,0.18)" stroke="#D97757" stroke-width="1.5"/>
+        <text x="237" y="50" text-anchor="middle" class="svg-ph">evaluation, analysis, tooling</text>
+        <!-- colleague reruns Apr 8 / 11 -->
+        <g fill="#E3DACC" stroke="#87867F" stroke-width="1">
+          <circle cx="802" cy="74" r="4"/>
+          <circle cx="882" cy="74" r="4"/>
+        </g>
+        <text x="842" y="50" text-anchor="middle" class="svg-note">colleague reruns</text>
+      </svg>
+      <div class="caption">bar = main work burst (Mar 12-23) &middot; dots = follow-up runs executed for colleagues (Apr 8, 11)</div>
+    </div>
+
+    <h2 id="packages">Work packages</h2>
+    <p>Effort is human working time estimated from artifact timestamps and run records, rounded to
+      half-days. Unattended eval runtime is excluded.</p>
+    <table>
+      <thead><tr><th>work package</th><th>description</th><th class="num">effort</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Initial Analysis</b></td>
+          <td>Understand the benchmark and harness; run a full-corpus baseline with Claude Sonnet 4.6 and
+            build a root-cause failure taxonomy of the early run.</td>
+          <td class="num">~1.5 d</td>
+        </tr>
+        <tr>
+          <td><b>Initial Evaluation</b></td>
+          <td>Systematic comparison: 3 models (Sonnet 4.6, GPT-5.4, Opus 4.6) by 2 locales (English,
+            Japanese) over a 21-task subset, 75-message limit, run via an orchestration script.</td>
+          <td class="num">~1.5 d</td>
+        </tr>
+        <tr>
+          <td><b>Analysis</b></td>
+          <td>Model and locale comparison reports with per-task breakdowns and case studies; an automated
+            loop/scoring scan of a representative run; and a token-cost study of prompt caching across the
+            agentic loop.</td>
+          <td class="num">~2 d</td>
+        </tr>
+        <tr>
+          <td><b>Additional Evaluation</b></td>
+          <td>Follow-up OSWorld runs executed for colleagues in April (attribution noted below).</td>
+          <td class="num">~0.5 d</td>
+        </tr>
+        <tr>
+          <td><b>Reporting</b></td>
+          <td>Wrote up the two evaluation reports and a reusable loop-detection scanner script.</td>
+          <td class="num">~0.5 d</td>
+        </tr>
+        <tr class="total">
+          <td>Total</td>
+          <td>Mar 12 - Mar 23, 2026 (plus April colleague runs)</td>
+          <td class="num">~6 d</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="daybyday">Day-by-day log</h2>
+
+    <details>
+      <summary>Mar 12-13 &middot; Baseline and failure taxonomy <span class="where">initial analysis &middot; ~1.5 d</span></summary>
+      <div class="body">
+        <p>Ran Claude Sonnet 4.6 over the full OSWorld corpus and analyzed the early results into a failure
+          taxonomy: infeasible-task-not-detected, action loops hitting the message limit, incorrect output,
+          and wrong-method failures. This framed what the systematic comparison should measure.</p>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Mar 16-17 &middot; Systematic 3-model by 2-locale comparison <span class="where">initial evaluation &middot; ~1.5 d</span></summary>
+      <div class="body">
+        <p>The core experiment: the same 21 tasks under English and Japanese desktop locales, for Sonnet 4.6,
+          GPT-5.4, and Opus 4.6 (126 evaluations). Task instructions stayed in English; only the desktop UI
+          language changed. Driven by an orchestration script iterating over models and locales.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Mar 17 &middot; Comparison reports and loop/scoring scan <span class="where">analysis, reporting &middot; ~1.5 d</span></summary>
+      <div class="body">
+        <p>Wrote the two evaluation reports (full systematic matrix and the multilingual subset), with model
+          rankings, locale-effect quantification, and case studies of individual failures (UI widget
+          targeting, visual parsing of Japanese fonts, toolbar-icon identification). An automated scan of a
+          representative run flagged action-repetition loops, environment misconfigurations, and a few
+          scoring disputes, suggesting the raw scores understate true capability somewhat.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Mar 19, 22-23 &middot; Loop scanner and token-cost study <span class="where">analysis, tooling &middot; ~1 d</span></summary>
+      <div class="body">
+        <p>Built a reusable loop-detection scanner for eval transcripts, then analyzed token usage and cost
+          across the 21-sample runs. Headline: roughly 91% of input tokens were served from the prompt cache
+          in steady state, giving about a 6x reduction in input cost.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Apr 8, 11 &middot; Colleague reruns <span class="where">additional evaluation &middot; ~0.5 d</span></summary>
+      <div class="body">
+        <p>A handful of OSWorld-small runs executed for colleagues (one Sonnet run, three GPT-5.4 runs).
+          These carry no accompanying analysis of mine; treat the effort here as run execution only.</p>
+      </div>
+    </details>
+
+    <h2 id="results">Results</h2>
+    <p>On the 21-task subset (average of both locales), the three models finished close together, but their
+      locale behavior differed sharply: GPT-5.4 was locale-robust, Sonnet 4.6 degraded in Japanese, and Opus
+      4.6 was the only model slightly stronger in Japanese.</p>
+    <table>
+      <thead><tr>
+        <th>model</th><th class="num">English</th><th class="num">Japanese</th><th class="num">delta (EN-JP)</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>GPT-5.4</td><td class="num">0.569 (12/21)</td><td class="num">0.429 (9/21)</td><td class="num">+0.140</td></tr>
+        <tr><td>Claude Opus 4.6</td><td class="num">0.476 (10/21)</td><td class="num">0.524 (11/21)</td><td class="num warn">-0.048</td></tr>
+        <tr><td>Claude Sonnet 4.6</td><td class="num">0.333 (7/21)</td><td class="num">0.238 (5/21)</td><td class="num">+0.095</td></tr>
+      </tbody>
+    </table>
+    <p>Overall accuracy averaged across locales was a near tie between Opus 4.6 (0.500) and GPT-5.4 (0.499),
+      with Sonnet 4.6 behind. The reports conclude that most failures came from UI friction and visual
+      parsing rather than language comprehension: instructions were always in English, so the Japanese-locale
+      drop reflects reading the screen, not understanding the task.</p>
+
+    <h2 id="deliverables">Deliverables</h2>
+    <ul>
+      <li>Systematic OSWorld evaluation report: 3 models by 2 locales over 21 tasks, with model rankings,
+        locale-effect quantification, and per-failure case studies.</li>
+      <li>Multilingual (English vs Japanese) subset report with per-sample breakdown.</li>
+      <li>Full-corpus baseline run and failure taxonomy for Claude Sonnet 4.6.</li>
+      <li>Automated loop/scoring scan of a representative run, with an adjusted-accuracy estimate.</li>
+      <li>Token-cost study documenting prompt-caching efficiency across the agentic loop.</li>
+      <li>Reusable loop-detection scanner and a systematic-run orchestration script.</li>
+    </ul>
+
+    <div class="callout">
+      <span class="ico">&#9733;</span>
+      <div>Timing for the March work is reconstructed from run and file timestamps; no session logs exist for
+        that period, so per-day effort carries roughly half-day uncertainty. The April runs are attributed to
+        colleague requests based on their log locations and the absence of related analysis.</div>
+    </div>
+  </main>
+
+</div>
+</body>
+</html>

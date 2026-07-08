@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Healthcare benchmarks (MedQA, IgakuQA): work summary and effort</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--gray-700);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 120px;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (max-width: 920px) { .page { grid-template-columns: 1fr; } nav { display: none; } }
+
+  nav { position: sticky; top: 32px; align-self: start; font-size: 13px; }
+  nav .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 12px;
+  }
+  nav a {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 2px solid var(--gray-300);
+    color: var(--gray-700);
+    text-decoration: none;
+  }
+  nav a:hover { color: var(--slate); border-color: var(--slate); }
+
+  header { margin-bottom: 12px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 32px;
+    color: var(--slate);
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--slate);
+    margin: 40px 0 14px;
+    scroll-margin-top: 24px;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--slate);
+    margin: 22px 0 8px;
+  }
+  p { margin-bottom: 12px; max-width: 680px; }
+  ul, ol { margin: 0 0 12px 22px; max-width: 680px; }
+  li { margin-bottom: 6px; }
+  code { font-family: var(--mono); font-size: 13px; }
+
+  details {
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    background: #fff;
+    margin: 14px 0;
+    overflow: hidden;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--slate);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before {
+    content: "\25B8";
+    color: var(--clay);
+    font-family: var(--sans);
+    font-size: 12px;
+    transition: transform 120ms;
+  }
+  details[open] summary::before { transform: rotate(90deg); }
+  summary .where {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-left: auto;
+    text-align: right;
+  }
+  details .body { padding: 0 16px 16px; }
+  details .body p { font-size: 14px; }
+
+  .callout {
+    display: flex;
+    gap: 12px;
+    border: 1.5px solid var(--oat);
+    background: rgba(227,218,204,0.35);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    font-size: 14px;
+    max-width: 760px;
+  }
+  .callout .ico { color: var(--clay); font-weight: 600; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 820px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--gray-300);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    font-weight: 600;
+    border-bottom: 1.5px solid var(--gray-300);
+  }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td {
+    border-top: 1.5px solid var(--gray-300);
+    border-bottom: none;
+    font-weight: 600;
+    color: var(--slate);
+  }
+
+  .ok   { color: var(--olive); font-weight: 600; }
+  .warn { color: var(--clay);  font-weight: 600; }
+
+  .figure {
+    background: #fff;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    padding: 18px 18px 10px;
+    margin: 16px 0;
+  }
+  .figure svg { width: 100%; height: auto; display: block; }
+  .figure .caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-top: 6px;
+  }
+  .svg-ph { font-family: var(--mono); font-size: 11px; fill: var(--gray-700); }
+  .svg-tick { font-family: var(--mono); font-size: 10px; fill: var(--gray-500); }
+  .svg-note { font-family: var(--sans); font-size: 10.5px; fill: var(--gray-500); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#overview">Overview</a>
+    <a href="#packages">Work packages</a>
+    <a href="#daybyday">Day-by-day log</a>
+    <a href="#results">Results</a>
+    <a href="#deliverables">Deliverables</a>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">Healthcare benchmarks &middot; project work report</div>
+      <h1>Healthcare benchmarks (MedQA, IgakuQA): work summary and effort</h1>
+    </header>
+
+    <h2 id="overview">Overview</h2>
+    <p>Across May and early June 2026 we evaluated frontier models on two medical question-answering
+      benchmarks: <b>MedQA</b> (US-style medical licensing questions in English) and <b>IgakuQA</b> (the
+      Japanese Medical Licensing Examination, JMLE). The work split into two streams. For MedQA we ran a
+      head-to-head of Claude Opus 4.7 and GPT-5.5 and then audited the disagreements, which surfaced
+      label-quality issues in the dataset rather than a clean capability gap. For IgakuQA we implemented the
+      task from scratch as an Inspect evaluation, found and fixed a prompt bug affecting linked clinical
+      cases, and compared the same two models, both of which score above 99%. A short follow-up in June added
+      a DeepSeek run and smoke tests. Evaluation runs mostly executed unattended; the effort figures below
+      count human working time.</p>
+
+    <div class="figure">
+      <svg viewBox="0 0 1000 160" role="img" aria-label="Timeline of healthcare-benchmark work, May to June 2026">
+        <line x1="40" y1="112" x2="960" y2="112" stroke="#D1CFC5" stroke-width="1.5"/>
+        <g>
+          <line x1="40"  y1="108" x2="40"  y2="116" stroke="#D1CFC5"/><text x="40"  y="132" text-anchor="middle" class="svg-tick">Apr 30</text>
+          <line x1="190" y1="108" x2="190" y2="116" stroke="#D1CFC5"/><text x="190" y="132" text-anchor="middle" class="svg-tick">May 7</text>
+          <line x1="340" y1="108" x2="340" y2="116" stroke="#D1CFC5"/><text x="340" y="132" text-anchor="middle" class="svg-tick">May 14</text>
+          <line x1="490" y1="108" x2="490" y2="116" stroke="#D1CFC5"/><text x="490" y="132" text-anchor="middle" class="svg-tick">May 21</text>
+          <line x1="640" y1="108" x2="640" y2="116" stroke="#D1CFC5"/><text x="640" y="132" text-anchor="middle" class="svg-tick">May 28</text>
+          <line x1="790" y1="108" x2="790" y2="116" stroke="#D1CFC5"/><text x="790" y="132" text-anchor="middle" class="svg-tick">Jun 4</text>
+          <line x1="940" y1="108" x2="940" y2="116" stroke="#D1CFC5"/><text x="940" y="132" text-anchor="middle" class="svg-tick">Jun 11</text>
+        </g>
+        <!-- MedQA May 3 -->
+        <rect x="96" y="62" width="30" height="24" rx="6" fill="rgba(217,119,87,0.18)" stroke="#D97757" stroke-width="1.5"/>
+        <text x="111" y="50" text-anchor="middle" class="svg-ph">MedQA</text>
+        <!-- IgakuQA May 8-12 -->
+        <rect x="211" y="62" width="86" height="24" rx="6" fill="rgba(120,140,93,0.16)" stroke="#788C5D" stroke-width="1.5"/>
+        <text x="254" y="50" text-anchor="middle" class="svg-ph">IgakuQA build + eval</text>
+        <!-- Jun 9 follow-up -->
+        <circle cx="896" cy="74" r="4" fill="#E3DACC" stroke="#87867F" stroke-width="1"/>
+        <text x="896" y="50" text-anchor="middle" class="svg-note">follow-up</text>
+      </svg>
+      <div class="caption">clay = MedQA (May 3) &middot; olive = IgakuQA build and evaluation (May 8-12) &middot; dot = June 9 follow-up (DeepSeek run, smoke tests)</div>
+    </div>
+
+    <h2 id="packages">Work packages</h2>
+    <p>Effort is human working time estimated from artifact timestamps and run records, rounded to
+      half-days. Unattended eval runtime is excluded. MedQA reused an existing Inspect task; IgakuQA was
+      implemented from scratch, which is why its setup column carries the build effort.</p>
+    <table>
+      <thead><tr>
+        <th>work package</th><th>description</th>
+        <th class="num">MedQA</th><th class="num">IgakuQA</th><th class="num">total</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Setup / Implementation</b></td>
+          <td>IgakuQA: implement the JMLE task as an Inspect evaluation, including per-question
+            single-vs-multi answer prompt dispatch, a custom scorer with two committee-answer overrides, and
+            5-years-by-6-sections dataset handling. MedQA used the existing Inspect task.</td>
+          <td class="num">-</td>
+          <td class="num">~1.5 d</td>
+          <td class="num">~1.5 d</td>
+        </tr>
+        <tr>
+          <td><b>Initial Evaluation</b></td>
+          <td>Two-model head-to-head (Claude Opus 4.7 vs GPT-5.5): MedQA on the 1,273-question English
+            subset; IgakuQA on the full 2022 exam (298 text-only items).</td>
+          <td class="num">~0.5 d</td>
+          <td class="num">~0.5 d</td>
+          <td class="num">~1 d</td>
+        </tr>
+        <tr>
+          <td><b>Additional Evaluation</b></td>
+          <td>IgakuQA: post-fix reruns of both models plus a June DeepSeek run. MedQA: June smoke tests and
+            model verification.</td>
+          <td class="num">~0.5 d</td>
+          <td class="num">~1 d</td>
+          <td class="num">~1.5 d</td>
+        </tr>
+        <tr>
+          <td><b>Analysis &amp; Reporting</b></td>
+          <td>MedQA: cross-model grid, significance test, and hand-review of disagreements plus a
+            sample-level fairness case study. IgakuQA: benchmark documentation, pre-fix vs post-fix failure
+            analysis, and implementation notes.</td>
+          <td class="num">~1.5 d</td>
+          <td class="num">~1.5 d</td>
+          <td class="num">~3 d</td>
+        </tr>
+        <tr class="total">
+          <td>Total</td>
+          <td>May 3 - Jun 9, 2026</td>
+          <td class="num">~2.5 d</td>
+          <td class="num">~4.5 d</td>
+          <td class="num">~7 d</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="daybyday">Day-by-day log</h2>
+
+    <h3>MedQA (May 3, follow-up Jun 9)</h3>
+
+    <details open>
+      <summary>May 3 &middot; Two-model run and disagreement audit <span class="where">initial evaluation, analysis &middot; ~2 d</span></summary>
+      <div class="body">
+        <p>Ran Claude Opus 4.7 and GPT-5.5 over the 1,273-question 5-option English subset, then built a
+          cross-model grid (both-correct, both-wrong, and the two disagreement cells) with a paired
+          significance test. Hand-reviewed the cases where both models missed: most converged on the same
+          defensible non-gold answer, pointing to label-quality issues rather than a capability gap. A
+          sample-level fairness case study (cocaine-associated chest pain) compared the 4-option and 5-option
+          dataset variants against current clinical guidelines.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Jun 9 &middot; Smoke tests <span class="where">additional evaluation &middot; ~0.5 d</span></summary>
+      <div class="body">
+        <p>A few small MedQA runs, likely model verification or diagnostics; minimal documentation.</p>
+      </div>
+    </details>
+
+    <h3>IgakuQA (May 8, May 12, follow-up Jun 9)</h3>
+
+    <details open>
+      <summary>May 8 &middot; Task implementation, evaluation, and the linked-case fix <span class="where">setup, evaluation, debugging &middot; ~3.5 d</span></summary>
+      <div class="body">
+        <p>Implemented the JMLE task from scratch: per-question dispatch between single-answer and
+          multi-answer prompts (without leaking the answer count), a custom scorer with two committee-answer
+          overrides, and handling for the exam's six sections. Ran both models on the 2022 exam and
+          discovered that linked clinical-case stems were not being prepended to their sub-questions; fixed
+          it, validated on the failed items, then re-ran both models in full. Documented the benchmark
+          structure and a pre-fix vs post-fix failure analysis. This was the heaviest single day of the
+          healthcare work.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>May 12 &middot; Implementation notes <span class="where">reporting &middot; ~0.5 d</span></summary>
+      <div class="body">
+        <p>Wrote up two subtle implementation points (the single-vs-multi prompt dispatch and a
+          committee-answer override) as a short explainer.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Jun 9 &middot; DeepSeek run <span class="where">additional evaluation &middot; ~0.5 d</span></summary>
+      <div class="body">
+        <p>Ran a DeepSeek model on the same 2022 slice for comparison: 97.0% accuracy, with one sample
+          blocked by a content filter.</p>
+      </div>
+    </details>
+
+    <h2 id="results">Results</h2>
+
+    <h3>MedQA (1,273-question English subset)</h3>
+    <table>
+      <thead><tr><th>model</th><th class="num">accuracy</th><th class="num">stderr</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-5.5</td><td class="num">95.13%</td><td class="num">0.60 pp</td></tr>
+        <tr><td>Claude Opus 4.7</td><td class="num">93.56%</td><td class="num">0.69 pp</td></tr>
+      </tbody>
+    </table>
+    <p>GPT leads by 1.57 pp (statistically significant, McNemar p=0.016), but the gap is small and the audit
+      attributes much of the both-wrong region to dataset label issues, suggesting a label-quality ceiling
+      near 95% rather than a clear capability difference.</p>
+
+    <h3>IgakuQA (2022 JMLE, 298 text-only items)</h3>
+    <table>
+      <thead><tr><th>model</th><th class="num">pre-fix</th><th class="num">post-fix</th></tr></thead>
+      <tbody>
+        <tr><td>Claude Opus 4.7</td><td class="num">294/298 (98.7%)</td><td class="num ok">297/298 (99.7%)</td></tr>
+        <tr><td>GPT-5.5</td><td class="num">294/298 (98.7%)</td><td class="num ok">296/298 (99.3%)</td></tr>
+        <tr><td>DeepSeek (Jun 9)</td><td class="num">-</td><td class="num">~97.0%</td></tr>
+      </tbody>
+    </table>
+    <p>The linked-case fix improved both models and eliminated their shared failures. Post-fix, Claude leads
+      by a single sample, within standard error; remaining misses are mostly genuinely hard items.</p>
+
+    <h2 id="deliverables">Deliverables</h2>
+    <ul>
+      <li>IgakuQA task implemented as an Inspect evaluation (prompt dispatch, custom scorer with committee
+        overrides, multi-year multi-section dataset handling), with the linked-clinical-case fix.</li>
+      <li>MedQA two-model comparison: cross-model grid, paired significance test, and a hand-reviewed
+        taxonomy of disagreements pointing to dataset label-quality issues.</li>
+      <li>MedQA sample-level fairness case study comparing 4-option and 5-option variants against clinical
+        guidelines.</li>
+      <li>IgakuQA benchmark documentation (exam structure, scoring rules, schema) and a pre-fix vs post-fix
+        failure analysis.</li>
+      <li>Implementation notes on the prompt-dispatch and committee-override logic.</li>
+      <li>Self-contained Inspect log viewers bundling the MedQA and IgakuQA evaluation runs.</li>
+    </ul>
+
+    <div class="callout">
+      <span class="ico">&#9733;</span>
+      <div>The May work predates available session logs, so per-day effort is reconstructed from run and file
+        timestamps and carries roughly half-day uncertainty. The June follow-up runs have minimal
+        documentation; their purpose is inferred.</div>
+    </div>
+  </main>
+
+</div>
+</body>
+</html>
