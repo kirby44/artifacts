@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Healthcare eval: what to run after MedQA and HealthBench</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--gray-700);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 120px;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (max-width: 920px) { .page { grid-template-columns: 1fr; } nav { display: none; } }
+
+  nav { position: sticky; top: 32px; align-self: start; font-size: 13px; }
+  nav .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 12px;
+  }
+  nav a {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 2px solid var(--gray-300);
+    color: var(--gray-700);
+    text-decoration: none;
+  }
+  nav a:hover { color: var(--slate); border-color: var(--slate); }
+  nav a.l2 { padding-left: 24px; font-size: 12.5px; color: var(--gray-500); }
+  nav .files {
+    margin-top: 28px;
+    border-top: 1px solid var(--gray-300);
+    padding-top: 16px;
+  }
+  nav .files code {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    padding: 3px 0;
+    overflow-wrap: anywhere;
+  }
+
+  header { margin-bottom: 12px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 32px;
+    color: var(--slate);
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+  }
+  .dateline {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--gray-500);
+    margin-top: -4px;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--slate);
+    margin: 40px 0 14px;
+    scroll-margin-top: 24px;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--slate);
+    margin: 22px 0 8px;
+  }
+  p { margin-bottom: 12px; max-width: 680px; }
+  ul, ol { margin: 0 0 12px 22px; max-width: 680px; }
+  li { margin-bottom: 6px; }
+  code { font-family: var(--mono); font-size: 13px; }
+  a { color: var(--slate); text-decoration: underline; text-decoration-color: var(--gray-300); }
+  a:hover { text-decoration-color: var(--clay); }
+
+  details {
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    background: #fff;
+    margin: 14px 0;
+    overflow: hidden;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--slate);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before {
+    content: "\25B8";
+    color: var(--clay);
+    font-family: var(--sans);
+    font-size: 12px;
+    transition: transform 120ms;
+  }
+  details[open] summary::before { transform: rotate(90deg); }
+  summary .where {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-left: auto;
+    text-align: right;
+  }
+  details .body { padding: 0 16px 16px; }
+  details .body p { font-size: 14px; }
+  details .body pre {
+    background: var(--gray-150);
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.55;
+    overflow-x: auto;
+    margin-top: 8px;
+  }
+
+  .tabs {
+    border: 1.5px solid var(--gray-300);
+    border-radius: 10px;
+    background: #fff;
+    margin: 16px 0 8px;
+    overflow: hidden;
+  }
+  .tabbar {
+    display: flex;
+    border-bottom: 1px solid var(--gray-300);
+    background: var(--gray-150);
+  }
+  .tabbar button {
+    appearance: none;
+    border: none;
+    background: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gray-500);
+    padding: 10px 16px;
+    cursor: pointer;
+    border-right: 1px solid var(--gray-300);
+  }
+  .tabbar button.on {
+    background: #fff;
+    color: var(--slate);
+    border-bottom: 2px solid var(--clay);
+    margin-bottom: -1px;
+  }
+  .tabs pre {
+    display: none;
+    margin: 0;
+    padding: 16px 18px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--slate);
+    overflow-x: auto;
+  }
+  .tabs pre.on { display: block; }
+  .hl { color: var(--clay); }
+  .cm { color: var(--gray-500); }
+
+  .callout {
+    display: flex;
+    gap: 12px;
+    border: 1.5px solid var(--oat);
+    background: rgba(227,218,204,0.35);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    font-size: 14px;
+  }
+  .callout .ico { color: var(--clay); font-weight: 600; }
+
+  dl.faq { margin-top: 8px; }
+  dl.faq dt {
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--slate);
+    margin-top: 18px;
+  }
+  dl.faq dd { font-size: 14px; margin: 4px 0 0; max-width: 640px; }
+  dl.faq dd pre {
+    margin-top: 6px;
+    background: var(--gray-150);
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    overflow-x: auto;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 820px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--gray-300);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    font-weight: 600;
+    border-bottom: 1.5px solid var(--gray-300);
+  }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .sub  { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+  .ok   { color: var(--olive); font-weight: 600; }
+  .warn { color: var(--clay);  font-weight: 600; }
+  .bad  { color: #B0533A;      font-weight: 600; }
+
+  .ladder {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin: 14px 0 4px;
+    max-width: 760px;
+  }
+  .ladder .chip {
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    background: #fff;
+    padding: 8px 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--gray-500);
+  }
+  .ladder .chip.hit {
+    border-color: var(--olive);
+    color: var(--slate);
+    background: rgba(120,140,93,0.10);
+    font-weight: 600;
+  }
+  .ladder-legend {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-top: 2px;
+  }
+  @media (max-width: 720px) { .ladder { grid-template-columns: repeat(2, 1fr); } }
+
+  /* inline svg diagram */
+  .figure { margin: 18px 0 8px; }
+  .figure svg { width: 100%; height: auto; }
+  .svg-title { font-family: var(--serif); font-size: 15px; fill: var(--slate); }
+  .svg-h { font-family: var(--mono); font-size: 12px; fill: var(--slate); letter-spacing: 0.04em; }
+  .svg-meta { font-family: var(--sans); font-size: 11.5px; fill: var(--gray-500); }
+  .svg-core-tx { font-family: var(--mono); font-size: 13px; fill: var(--ivory); letter-spacing: 0.04em; }
+  .svg-chip-tx { font-family: var(--mono); font-size: 9.5px; fill: var(--gray-700); }
+  .svg-lbl { font-family: var(--mono); font-size: 10px; fill: var(--gray-500); }
+  .svg-legend { font-family: var(--mono); font-size: 11px; fill: var(--gray-500); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#verdict">Recommendation</a>
+    <a href="#axes">The three axes</a>
+    <a href="#medagentbench">MedAgentBench in detail</a>
+    <a href="#build">What the port costs</a>
+    <a href="#build" class="l2">Harness shape</a>
+    <a href="#build" class="l2">Five build steps</a>
+    <a href="#risks">Risks and gotchas</a>
+    <a href="#companions">Two companions</a>
+    <a href="#companions" class="l2">AgentClinic</a>
+    <a href="#companions" class="l2">JMedEthicBench</a>
+    <a href="#setaside">Considered and set aside</a>
+    <a href="#framework">How it lands in the deck</a>
+    <a href="#faq">FAQ</a>
+    <div class="files">
+      <div class="label">Sources read</div>
+      <code>HealthCare/ヘルスケアAI評価フレームワーク.pdf</code>
+      <code>HealthCare/ヘルスケアデータセット.pdf</code>
+      <code>HealthCare/ヘルスケアデータセット作業手順書.pdf</code>
+      <code>AgentSafety/evaluation_components_breakdown.html</code>
+      <code>inspect_evals/_registry.py @ main</code>
+      <code>stanfordmlgroup/MedAgentBench @ main</code>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">Cabinet Office healthcare &middot; benchmark selection</div>
+      <h1>What to run after MedQA and HealthBench</h1>
+      <div class="dateline">Created 2026-07-31</div>
+    </header>
+
+    <h2 id="verdict">Recommendation</h2>
+    <p>Run <b>MedAgentBench</b> next. Our two healthcare benchmarks so far cover two of the three axes
+      that matter for the infrastructure-flexibility story: MedQA is single-turn knowledge, HealthBench is
+      multi-turn dialogue. Both grade <i>text</i>. MedAgentBench is the axis neither one touches:
+      <b>a tool-using agent acting on a stateful sandboxed EHR</b>, where the score comes from
+      re-inspecting the environment afterwards rather than from reading the transcript.</p>
+    <p>It is also the safest choice politically. It is published in NEJM AI (2025), MIT licensed,
+      already listed in our own dataset catalogue as entry 31, and it is one of only two benchmarks
+      Anthropic cited for Claude for Healthcare. The leaderboard is unsaturated at
+      <b>69.67%</b> for the best model, so unlike MedQA there is still signal to report.</p>
+    <p>Two optional companions, in priority order: <b>AgentClinic</b> for the multi-model-role axis
+      (cheap, and it reuses MedQA cases so the three runs share source data), and
+      <b>JMedEthicBench</b> for the Japanese adversarial axis, which is the piece that joins this
+      workstream to the AgentSafety plan.</p>
+
+    <h2 id="axes">The three axes</h2>
+    <p>Read through the same dataset / solver / scorer lens as
+      <code>evaluation_components_breakdown.html</code>, the point of the third run is that every one of
+      the three components changes shape, and two Inspect subsystems we have never used in healthcare
+      come online.</p>
+
+    <table>
+      <tr>
+        <th></th><th>MedQA (done)</th><th>HealthBench (done)</th><th>MedAgentBench (next)</th>
+      </tr>
+      <tr>
+        <td><b>Shape</b></td>
+        <td>single-turn MCQ</td>
+        <td>multi-turn dialogue</td>
+        <td>agent against a virtual EHR</td>
+      </tr>
+      <tr>
+        <td><b>Dataset</b></td>
+        <td>12,723 USMLE items</td>
+        <td>5,000 conversations</td>
+        <td>300 physician-written tasks, 10 categories</td>
+      </tr>
+      <tr>
+        <td><b>Solver</b></td>
+        <td><code>generate()</code></td>
+        <td>dialogue rollout</td>
+        <td><code>react()</code> plus 9 FHIR tools</td>
+      </tr>
+      <tr>
+        <td><b>Scorer</b></td>
+        <td><code>choice</code></td>
+        <td>rubric / LLM judge</td>
+        <td>queries the FHIR server after the run</td>
+      </tr>
+      <tr>
+        <td><b>Infra used</b></td>
+        <td>model API only</td>
+        <td>plus judge model</td>
+        <td>plus Docker sandbox, tool calling, stateful env</td>
+      </tr>
+      <tr>
+        <td><b>Headroom</b></td>
+        <td>saturated, 84 to 91%</td>
+        <td>Hard subset under 32%</td>
+        <td>69.67% best, action tasks 54%</td>
+      </tr>
+    </table>
+
+    <h3>Inspect surface exercised</h3>
+    <div class="ladder">
+      <div class="chip hit">record_to_sample</div>
+      <div class="chip hit">generate</div>
+      <div class="chip hit">multi_turn</div>
+      <div class="chip hit">llm_judge_scorer</div>
+      <div class="chip">tool_defs</div>
+      <div class="chip">react_agent</div>
+      <div class="chip">docker_sandbox</div>
+      <div class="chip">stateful_env</div>
+      <div class="chip">side_effect_scorer</div>
+      <div class="chip">split_metrics</div>
+      <div class="chip">model_roles</div>
+      <div class="chip">adversarial_loop</div>
+    </div>
+    <div class="ladder-legend">olive = already exercised by the MedQA and HealthBench runs &middot; outline = new surface, first eight added by MedAgentBench, last two by the companions</div>
+
+    <h2 id="medagentbench">MedAgentBench in detail</h2>
+    <p>A virtual EHR built by the Stanford ML Group. 300 tasks written by two internal-medicine
+      physicians, run against 100 de-identified patient profiles drawn from the Stanford Research
+      Repository (STARR), served by a FHIR-compliant API. The agent has to issue correctly structured
+      GET and POST requests against real FHIR resource types, so the benchmark tests understanding of
+      the healthcare API standard, not just clinical knowledge.</p>
+
+    <details open>
+      <summary>Task mix: 10 categories, 30 tasks each <span class="where">data/medagentbench/test_data_v2.json</span></summary>
+      <div class="body">
+        <p>Half the categories are information retrieval (what is this patient's MRN, most recent
+          magnesium, last HbA1c) and half are order entry (document a measurement, order a lab, place a
+          referral, prescribe). Retrieval tasks are graded on the returned answer; order-entry tasks are
+          graded on whether the right resource now exists on the server. That split is what the
+          benchmark reports as <b>Query SR</b> and <b>Action SR</b>.</p>
+        <p>A retrieval task and an order-entry task, verbatim:</p>
+        <pre>task4_1  "What's the most recent magnesium level of the patient S3032536
+          within last 24 hours?"
+         context: code for magnesium is "MG", answer in mg/dL, -1 if unavailable
+
+task8_1  "Order orthopedic surgery referral for patient S2016972. Specify
+          within the free text: Situation: acute left knee injury &hellip;"
+         context: SNOMED code for the referral is 306181000000106</pre>
+      </div>
+    </details>
+
+    <details>
+      <summary>Why the numbers are worth reporting <span class="where">arXiv:2501.14654, NEJM AI 2025</span></summary>
+      <div class="body">
+        <p>Unsaturated, and the ordering is informative rather than flat. Claude leads overall, Gemini
+          leads on actions, which is exactly the kind of capability split a policy audience finds
+          legible.</p>
+        <table>
+          <tr><th>Model</th><th>Overall SR</th><th>Query SR</th><th>Action SR</th></tr>
+          <tr><td>Claude 3.5 Sonnet v2</td><td class="num"><b>69.67%</b></td><td class="num">85.33%</td><td class="num">54.00%</td></tr>
+          <tr><td>GPT-4o</td><td class="num">64.00%</td><td class="num">72.00%</td><td class="num">56.00%</td></tr>
+          <tr><td>DeepSeek-V3</td><td class="num">62.67%</td><td class="num">70.67%</td><td class="num">54.67%</td></tr>
+          <tr><td>Gemini 1.5 Pro</td><td class="num">62.00%</td><td class="num">52.67%</td><td class="num"><b>71.33%</b></td></tr>
+        </table>
+        <p>These are the published figures for models that are now two generations old, so a rerun with
+          current frontier models is itself a result worth having.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Provenance and licensing <span class="where">github.com/stanfordmlgroup/MedAgentBench</span></summary>
+      <div class="body">
+        <p><b>MIT</b>, 308 stars, last pushed 2025-11-21. Published in NEJM AI as
+          <code>10.1056/AIdbp2500144</code>, preprint arXiv:2501.14654. Patient data is de-identified
+          and shipped inside the container, so there is no PhysioNet-style credentialing gate and no
+          real patient information enters our environment. That matters for the framework deck, which
+          explicitly wants scenarios that can run 実患者情報を含めずに.</p>
+      </div>
+    </details>
+
+    <h2 id="build">What the port costs</h2>
+    <p>Nothing in this family ships natively. Upstream <code>inspect_evals</code> as of today has
+      <code>medqa</code>, <code>healthbench</code> (plus <code>_consensus</code>, <code>_hard</code>,
+      <code>_meta_eval</code>), <code>pubmedqa</code> and <code>vqa_rad</code>, and no agentic medical
+      task at all. So this is a build, which is the point: the flexibility story is stronger when we
+      author the components rather than call a registry entry.</p>
+
+    <h3>Harness shape</h3>
+    <div class="figure">
+      <svg viewBox="0 0 1000 470" role="img" aria-label="MedAgentBench wired as an Inspect task: dataset feeds a react solver with nine FHIR tools, which calls a FHIR server inside a Docker sandbox; the scorer re-queries that server afterwards and writes a Score.">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#87867F"/>
+          </marker>
+        </defs>
+
+        <text class="svg-title" x="4" y="22">MedAgentBench wired as one Inspect task</text>
+
+        <!-- dataset -->
+        <rect x="6" y="70" width="182" height="100" rx="10" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+        <text class="svg-h" x="22" y="98">dataset</text>
+        <text class="svg-meta" x="22" y="120">test_data_v2.json</text>
+        <text class="svg-meta" x="22" y="140">300 tasks, 10 x 30</text>
+        <line x1="190" y1="120" x2="234" y2="120" stroke="#87867F" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- solver -->
+        <rect x="240" y="52" width="272" height="136" rx="10" fill="#fff" stroke="#D97757" stroke-width="1.5"/>
+        <text class="svg-h" x="256" y="76">solver: react()</text>
+        <text class="svg-meta" x="256" y="96">9 FHIR tool definitions</text>
+        <rect x="256" y="106" width="118" height="20" rx="5" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <text class="svg-chip-tx" x="263" y="120">GET Patient</text>
+        <rect x="380" y="106" width="118" height="20" rx="5" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <text class="svg-chip-tx" x="387" y="120">GET Observation</text>
+        <rect x="256" y="132" width="118" height="20" rx="5" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <text class="svg-chip-tx" x="263" y="146">GET Condition</text>
+        <rect x="380" y="132" width="118" height="20" rx="5" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <text class="svg-chip-tx" x="387" y="146">POST Observation</text>
+        <rect x="256" y="158" width="118" height="20" rx="5" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <text class="svg-chip-tx" x="263" y="172">POST MedReq</text>
+        <rect x="380" y="158" width="118" height="20" rx="5" fill="#F0EEE6" stroke="#D1CFC5"/>
+        <text class="svg-chip-tx" x="387" y="172">POST SvcReq</text>
+        <line x1="514" y1="120" x2="556" y2="120" stroke="#87867F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text class="svg-lbl" x="535" y="142" text-anchor="middle">HTTP</text>
+
+        <!-- sandbox -->
+        <rect x="560" y="40" width="400" height="200" rx="12" fill="none" stroke="#D97757" stroke-width="1.5" stroke-dasharray="6 5"/>
+        <text class="svg-h" x="578" y="64">docker sandbox</text>
+        <text class="svg-meta" x="578" y="84">jyxsu6/medagentbench:latest (amd64)</text>
+        <rect x="578" y="96" width="364" height="44" rx="22" fill="#141413"/>
+        <text class="svg-core-tx" x="760" y="123" text-anchor="middle">HAPI FHIR server :8080</text>
+        <rect x="578" y="154" width="364" height="66" rx="8" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+        <text class="svg-meta" x="594" y="178">100 de-identified STARR patients</text>
+        <text class="svg-meta" x="594" y="200">Observation / MedicationRequest / Procedure / ServiceRequest</text>
+
+        <!-- post-hoc state check -->
+        <path d="M 760 240 V 340 H 690" fill="none" stroke="#87867F" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+        <text class="svg-lbl" x="774" y="288">verify the side effects,</text>
+        <text class="svg-lbl" x="774" y="304">not the transcript</text>
+
+        <!-- scorer -->
+        <rect x="244" y="296" width="440" height="96" rx="10" fill="#fff" stroke="#788C5D" stroke-width="1.5"/>
+        <text class="svg-h" x="260" y="322">scorer: state check</text>
+        <text class="svg-meta" x="260" y="344">10 graders, one per task category, ported from refsol.py</text>
+        <text class="svg-meta" x="260" y="366">reports Query SR and Action SR separately</text>
+        <line x1="240" y1="344" x2="194" y2="344" stroke="#87867F" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- score -->
+        <rect x="6" y="296" width="182" height="96" rx="10" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+        <text class="svg-h" x="22" y="322">Score</text>
+        <text class="svg-meta" x="22" y="344">value + explanation</text>
+        <text class="svg-meta" x="22" y="366">written to the .eval log</text>
+
+        <text class="svg-legend" x="4" y="440">clay = components we author &middot; olive = the new scorer class &middot; slate = process inside the container &middot; dashed = post-run state query</text>
+      </svg>
+    </div>
+
+    <h3>Five build steps</h3>
+
+    <details>
+      <summary>1 &middot; Dataset loader <span class="where">exists, trivial</span></summary>
+      <div class="body">
+        <p>One flat JSON array of 300 records with <code>id</code>, <code>instruction</code>,
+          <code>context</code>, <code>sol</code> and <code>eval_MRN</code>. A
+          <code>record_to_sample</code> of about ten lines. The <code>id</code> prefix
+          (<code>task1</code> through <code>task10</code>) carries into metadata because the scorer
+          dispatches on it.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>2 &middot; Nine FHIR tools plus react() <span class="where">data/medagentbench/funcs_v1.json</span></summary>
+      <div class="body">
+        <p>The tool schemas ship as JSON with descriptions lifted from the Epic FHIR API docs, so they
+          convert almost mechanically into Inspect tool definitions: five GET (Patient, Observation by
+          code, Observation by category, Condition, MedicationRequest, Procedure) and three POST
+          (Observation, MedicationRequest, ServiceRequest). Wrap each as a thin HTTP call to the sandbox
+          base URL and hand the set to <code>react()</code>. Same pattern as the GAIA run, different
+          tools.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>3 &middot; Sandbox with the FHIR server <span class="where">docker pull jyxsu6/medagentbench:latest</span></summary>
+      <div class="body">
+        <p>The upstream harness runs the FHIR server on port 8080 and a fleet of task workers on
+          5000 to 5015. We only need the server, the worker fleet is AgentBench scaffolding that Inspect
+          replaces. So the compose file is a single service, and the agent reaches it over the sandbox
+          network.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>4 &middot; The scorer, which is the actual work <span class="where">src/server/tasks/medagentbench/eval.py:8</span></summary>
+      <div class="body">
+        <p>Upstream grading dispatches on the task category to one of ten reference functions:</p>
+        <pre>def eval(case_data, results, fhir_api_base):
+    task_id = case_data['id'].split('_')[0]
+    grader_func = getattr(refsol, task_id)      <span class="cm"># task1 .. task10</span>
+    return grader_func(case_data, results, fhir_api_base) is True</pre>
+        <p>Retrieval graders compare the agent's answer against <code>sol</code>. Order-entry graders
+          issue their own GET against the live server and check that the posted resource is present and
+          well formed. Porting means bringing those ten functions inside one Inspect
+          <code>@scorer</code> and letting the metric split retrieval from action.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>5 &middot; Run, then report <span class="where">rerun with current frontier models</span></summary>
+      <div class="body">
+        <p>The published table stops at Claude 3.5 Sonnet v2 and Gemini 1.5 Pro. A clean rerun on
+          current models across both metrics is a publishable result on its own, and it stresses the
+          same sandbox concurrency path we already tuned for Cybench.</p>
+      </div>
+    </details>
+
+    <h3>Concretely, in code</h3>
+    <div class="tabs" data-tabs>
+      <div class="tabbar">
+        <button class="on" data-t="0">task record</button>
+        <button data-t="1">tool schema</button>
+        <button data-t="2">inspect sketch</button>
+      </div>
+<pre class="on"><span class="cm">// data/medagentbench/test_data_v2.json, one of 300</span>
+{
+  <span class="hl">"id"</span>: "task10_1",
+  <span class="hl">"instruction"</span>: "What's the last HbA1C value in the chart for patient
+                   S6227720 and when was it recorded? If the lab value
+                   result date is greater than 1 year old, order a new
+                   HbA1C lab test.",
+  <span class="hl">"context"</span>: "It's 2023-11-13T10:15:00+00:00 now. The code for HbA1C is
+               \"A1C\". The LOINC code for ordering HbA1C lab is: 4548-4.
+               The answer should be [-1] if a measurement is not available.",
+  <span class="hl">"eval_MRN"</span>: "S6227720"
+}
+<span class="cm">// note this one is a hybrid: read the chart, then conditionally write.</span>
+<span class="cm">// grading has to check both the answer and the server state.</span></pre>
+<pre><span class="cm">// data/medagentbench/funcs_v1.json, one of 9</span>
+{
+  <span class="hl">"name"</span>: "POST {api_base}/Observation",
+  <span class="hl">"description"</span>: "Observation.Create (Vitals Group) &hellip;",
+  <span class="hl">"parameters"</span>: {
+    "resourceType", "category", "code", "effectiveDateTime",
+    "status", "valueString", "subject", &hellip;
+  }
+}
+<span class="cm">// the other eight: GET Patient / Observation x2 / Condition /</span>
+<span class="cm">// MedicationRequest / Procedure, POST MedicationRequest / ServiceRequest</span></pre>
+<pre><span class="cm"># the whole port, in outline</span>
+
+<span class="hl">@task</span>
+def medagentbench() -> Task:
+    return Task(
+        dataset=json_dataset("test_data_v2.json", record_to_sample),
+        solver=<span class="hl">react</span>(tools=fhir_tools()),          <span class="cm"># step 2</span>
+        scorer=<span class="hl">medagentbench_scorer</span>(),           <span class="cm"># step 4</span>
+        sandbox=("docker", "compose.yaml"),      <span class="cm"># step 3, FHIR on :8080</span>
+    )
+
+<span class="hl">@scorer</span>(metrics=[accuracy()])
+def medagentbench_scorer():
+    async def score(state, target):
+        <span class="cm"># dispatch on task1 .. task10, exactly like refsol</span>
+        grader = GRADERS[state.metadata["id"].split("_")[0]]
+        ok = await grader(state, api_base())     <span class="cm"># may re-GET the server</span>
+        return Score(value=CORRECT if ok else INCORRECT)
+    return score</pre>
+    </div>
+
+    <h2 id="risks">Risks and gotchas</h2>
+
+    <div class="callout">
+      <span class="ico">&#9733;</span>
+      <div>The reference graders are <b>not in the repository</b>. <code>refsol.py</code> is
+        distributed separately through a Stanford Box link in the README, deliberately, to keep the
+        answer key out of training corpora. Download it before scoping the scorer work, and treat that
+        link as a dependency that could rot.</div>
+    </div>
+
+    <ul>
+      <li><b>amd64 image.</b> <code>jyxsu6/medagentbench:latest</code> runs under Docker Rosetta on
+        this Mac, same as the Cybench images. Expect the same slowdown, and pin
+        <code>--platform linux/amd64</code> if the image is imported anywhere else.</li>
+      <li><b>No Japanese content.</b> Tasks, codes and patients are all US clinical practice. A JP
+        localisation (JMDC-style codes, 日本語 instructions) is a follow-on project, not part of this
+        port. Worth saying out loud in the deck so nobody expects it for free.</li>
+      <li><b>Hybrid tasks blur the metric split.</b> Categories like <code>task10</code> require a read
+        and then a conditional write, so a single boolean per sample understates partial success. Keep
+        the upstream definition for comparability, and consider a second, finer metric of our own.</li>
+      <li><b>Upstream is AgentBench-shaped.</b> Its client, assigner and task-worker layers all
+        disappear when Inspect drives the loop. Do not try to port the harness, only the data, the tool
+        schemas and the graders.</li>
+    </ul>
+
+    <h2 id="companions">Two companions</h2>
+
+    <h3>AgentClinic, for the multi-model-role axis</h3>
+    <p>Four model roles in one eval: a doctor agent under test, a patient agent, a measurement agent
+      that answers test-order requests, and a moderator. MIT, 340 stars, arXiv:2405.07960. The reason to
+      pair it with MedAgentBench is narrative economy: <b>AgentClinic-MedQA is 215 cases derived from
+      MedQA itself</b>, so one slide can show the same source questions rendered three ways, as an MCQ,
+      as a dialogue and as an agent-versus-agent encounter. Escalating infrastructure, constant data.</p>
+    <p>It also lands on machinery we have already used. The persuader / persuadee / judge role dispatch
+      in the APE and MakeMeSay work is the same <code>get_model(role=&hellip;)</code> pattern.
+      <span class="warn">Caveat:</span> the repository has not been touched since 2024-12-31, so port
+      the protocol from the paper and treat the code as reference only. The MIMIC-IV variant needs
+      PhysioNet credentialing, so stay on the MedQA and NEJM variants.</p>
+
+    <h3>JMedEthicBench, for the Japanese adversarial axis</h3>
+    <p>This is the one that connects this workstream to the AgentSafety plan. Multi-turn adversarial
+      Japanese medical safety, built on 67 Japan Medical Association guidelines, over 50,000 adversarial
+      conversations generated from seven automatically discovered jailbreak strategies, scored by a dual
+      LLM protocol. 27 models evaluated. The headline finding is directly on-message for the framework:
+      <b>safety scores fall across turns, median 9.5 down to 5.5</b>, so multi-turn escalation walks
+      around defences that hold on the first turn. Medical-specialised models were more vulnerable than
+      commercial ones, in both Japanese and English.</p>
+    <p>The attacker / target / judge harness in
+      <code>evaluation_components_breakdown.html</code> already covers this shape, so the marginal
+      build is a dataset loader and a judge.
+      <span class="warn">Caveat:</span> arXiv:2601.01627 is from January 2026, adoption is effectively
+      zero, and I have not verified that the conversations are actually downloadable. Confirm
+      availability before promising it to anyone.</p>
+
+    <h2 id="setaside">Considered and set aside</h2>
+    <table>
+      <tr><th>Candidate</th><th>Why not now</th></tr>
+      <tr>
+        <td><b>MedCalc-Bench</b><br><span class="sub">Claude-cited, NeurIPS 2024 Oral</span></td>
+        <td>Easy and credible, but it is accuracy over 55 clinical calculations with no environment.
+          Almost no new infrastructure demonstrated, which is the whole point of the next run.</td>
+      </tr>
+      <tr>
+        <td><b>HealthBench Hard / Consensus</b></td>
+        <td>Same axis we have already run. Near-free though, since upstream now ships
+          <code>healthbench_hard</code> and <code>healthbench_consensus</code> natively, so take it as
+          an extra data point rather than the next milestone.</td>
+      </tr>
+      <tr>
+        <td><b>AgentClinic-MIMIC-IV</b></td>
+        <td>PhysioNet credentialing gate. The MedQA and NEJM variants give the same infrastructure
+          shape without the paperwork.</td>
+      </tr>
+      <tr>
+        <td><b>AMIE OSCE</b></td>
+        <td>Not public. Listed as 非公開 in our own catalogue.</td>
+      </tr>
+      <tr>
+        <td><b>The 2026 crop</b><br><span class="sub">ClinEnv, PhysAssistBench, HealthAdminBench, AgentRx, EHR-Complex</span></td>
+        <td>Too new to carry weight in a Cabinet Office deck, no adoption to point at. One to keep on
+          the shelf: HealthAdminBench is computer-use over healthcare administration, which would reuse
+          the OSWorld experience if a fourth axis is ever wanted.</td>
+      </tr>
+    </table>
+
+    <h2 id="framework">How it lands in the deck</h2>
+    <p>The framework document already asks for this, twice. フェーズ2 lists
+      <b>エージェント向けサンドボックス</b> as a module to add, and the 二層モデル appendix puts
+      ユースケース特化 behaviour in the second layer while leaving 地力 to the existing benchmarks.
+      MedAgentBench is the concrete instance of both: an agent operating a clinical system, measured on
+      whether the orders it places are correct, with an upstream citation and a leaderboard attached.</p>
+    <p>It also answers the 知識-実践ギャップ argument with our own numbers rather than a quotation. The
+      systematic-review framing in the dataset appendix is that knowledge benchmarks sit at 84 to 90%
+      while practice-based evaluation stalls at 45 to 69%. Running MedQA at saturation and MedAgentBench
+      at 70% on the same models, in the same harness, produces that gap as a measured result in one
+      <code>.eval</code> log set.</p>
+    <p>Suggested framing for the three runs: 単一ターン (MedQA) &rarr; 多ターン対話 (HealthBench)
+      &rarr; エージェント x 環境 (MedAgentBench), with the adversarial axis (JMedEthicBench) as the
+      declared next step rather than a fourth completed run.</p>
+
+    <h2 id="faq">FAQ</h2>
+    <dl class="faq">
+      <dt>Is any of this available in inspect_evals already?</dt>
+      <dd>No. Upstream <code>main</code> today has <code>medqa</code>, <code>healthbench</code> with its
+        three variants, <code>pubmedqa</code> and <code>vqa_rad</code>, and no agentic medical task. All
+        three candidates here are ports. That is a feature for the flexibility argument, and it is also
+        why the effort estimate matters.</dd>
+
+      <dt>How big is the port, honestly?</dt>
+      <dd>Dataset and tools are close to mechanical. The scorer is the real item: ten grader functions
+        to bring across, several of which issue their own FHIR queries. Comparable to the Cybench diet
+        solver in scope, and larger than the MedQA replica's answer parser.</dd>
+
+      <dt>Does any patient data touch our environment?</dt>
+      <dd>Only de-identified STARR profiles, shipped inside the container image. No PhysioNet
+        credentialing, no live data, nothing that needs an ethics route. Same posture as the framework's
+        シナリオカード design, which is explicitly built to run 実患者情報を含めずに.</dd>
+
+      <dt>What if we only have budget for one more run?</dt>
+      <dd>MedAgentBench alone. It is the only candidate that adds two Inspect subsystems at once
+        (sandbox and tool calling) and a scorer class we have never written, and it is the only one with
+        both a journal publication and a vendor citation behind it.</dd>
+
+      <dt>What is the first thing to check before committing?</dt>
+      <dd>That the <code>refsol.py</code> Box link still resolves and the graders inside are complete
+        for all ten categories. Everything else in the estimate is visible in the public repository;
+        that one file is not.</dd>
+    </dl>
+  </main>
+
+</div>
+
+<script>
+document.querySelectorAll("[data-tabs]").forEach(box => {
+  const btns = box.querySelectorAll("button");
+  const panes = box.querySelectorAll("pre");
+  btns.forEach(b => b.addEventListener("click", () => {
+    btns.forEach(x => x.classList.remove("on"));
+    panes.forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    panes[+b.dataset.t].classList.add("on");
+  }));
+});
+</script>
+</body>
+</html>
