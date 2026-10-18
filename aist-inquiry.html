@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AIST Inquiry</title>
+<style>body{font:18px/1.65 system-ui,sans-serif;max-width:760px;margin:64px auto;padding:0 24px;background:#faf8f3;color:#25231f}h1,h2{font-family:Georgia,serif;line-height:1.2}h1{font-size:44px}h2{margin-top:40px}a{color:#79502d}small{color:#625e55}</style>
+<h1>AIST Inquiry</h1>
+<p class="lede">A personal administration tool operated by Kazuki Kimura to handle AI Safety Tokyo study-group inquiries and enroll interested participants in its announcement mailing lists.</p>
+<p>This desktop tool is intended for the organizer’s use. It checks membership and adds participants as ordinary members of the AI Safety Tokyo events and study-group mailing lists. The wider inquiry workflow prepares Gmail replies for human review and checks event information and Discord invitations.</p>
+<p><a href="#privacy">Privacy policy</a> · <a href="mailto:someone@aisafety.tokyo">Contact AI Safety Tokyo</a></p>
+<h2 id="privacy">Privacy policy</h2>
+<p><small>Effective October 18, 2026</small></p>
+<p>This policy describes the AIST Inquiry Google authorization and its mailing-list administration helper.</p>
+<h2>Information used and purpose</h2>
+<p>The helper accesses Google Groups identifiers, membership email addresses, membership roles, and membership status to check enrollment, avoid duplicate additions, and add interested participants to the two AI Safety Tokyo mailing lists. Its Google authorization permits group management; the helper limits its operations to these two lists and does not provide group deletion or role-promotion commands.</p>
+<h2>Storage and access</h2>
+<p>OAuth credentials are stored in files restricted to the operator’s account on the operator’s computer. Google stores group memberships. The helper does not maintain a separate participant database. Requested email addresses and membership results may appear in the local command history and in the AI assistant session used by the organizer.</p>
+<h2>Services involved</h2>
+<p>The helper sends membership requests to Google’s Cloud Identity API. When the organizer uses Codex to operate the workflow, relevant inquiry content, participant addresses, and membership results may be processed by OpenAI as part of that assistant session. Gmail and Discord use their respective services and access arrangements; this Google Groups authorization does not grant access to Gmail or Discord.</p>
+<h2>Limited use</h2>
+<p>Information accessed through Google APIs is used to provide the described inquiry and mailing-list administration functions. It is not sold or used for advertising. AIST Inquiry’s use and transfer of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including its Limited Use requirements.</p>
+<h2>Retention and control</h2>
+<p>Mailing-list membership remains until removed by the participant or an authorized organizer. Participants can use Google Groups membership controls or contact AI Safety Tokyo to request removal. The operator can revoke this app’s Google access in <a href="https://myaccount.google.com/permissions">Google Account permissions</a> and remove its local credential files. Related email and assistant-session records are governed by their respective account settings and service policies.</p>
+<h2>Contact and changes</h2>
+<p>For questions or removal requests, contact <a href="mailto:someone@aisafety.tokyo">someone@aisafety.tokyo</a>. Changes to this policy will be published on this page with an updated effective date.</p>
+</html>
